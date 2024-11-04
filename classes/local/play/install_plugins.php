@@ -10,6 +10,7 @@ use core\update\api;
 use core\update\remote_info;
 use core_component;
 use core_plugin_manager;
+use invalid_parameter_exception;
 use local_adlersetup\classes\local\play\exceptions\downgrade_exception;
 use local_adlersetup\classes\local\play\models\InstallPluginsModel;
 use moodle_exception;
@@ -84,7 +85,7 @@ class InstallPlugins extends BasePlay {
         if ($this->is_release_version($plugin)) {
             return $this->is_update_required_release_version($plugin, $plugin_info);
         } else {
-            return $this->is_update_required_branch_version($plugin, $plugin_info);
+            throw new invalid_parameter_exception('branch version not supported');
         }
     }
 
@@ -98,58 +99,8 @@ class InstallPlugins extends BasePlay {
         return version_compare($desired_plugin->version, $installed_plugin['version'], '>');
     }
 
-    /**
-     * @throws downgrade_exception
-     * @throws moodle_exception
-     */
-    private function is_update_required_branch_version(InstallPluginsModel $desired_plugin, array $installed_plugin): bool {
-        $desired_version_long = $this->get_versions_from_github($desired_plugin)['version'];
-        if ((int)$desired_version_long < (int)$installed_plugin['version']) {
-            throw new downgrade_exception('plugin downgrade is not allowed');
-        }
-        return true;
-    }
-
     private function is_release_version(InstallPluginsModel $plugin): bool {
         return preg_match('/^[0-9]+(\.[0-9]+){0,2}(-rc(\.[0-9]+)?)?$/', $plugin->version);
-    }
-
-
-    /**
-     * Get the url to the version.php file of the plugin on GitHub
-     *
-     * @param InstallPluginsModel $plugin
-     * @return object
-     * @throws moodle_exception
-     */
-    private function get_versions_from_github(InstallPluginsModel $plugin): object {
-        if ($this->is_release_version($plugin)) {
-            // plugin is a release
-            $version_php_url = "https://raw.githubusercontent.com/" . $plugin->github_project . "/refs/tags/" . $plugin['version'] . "/version.php";
-        } else {
-            // plugin is a branch
-            $version_php_url = "https://raw.githubusercontent.com/" . $plugin->github_project . "/refs/heads/" . $plugin['version'] . "/version.php";
-        }
-
-        $version_php_file_content = file_get_contents($version_php_url);
-
-        // parse plugin->release and $plugin-version from version.php
-        if (preg_match('/\$plugin->release\s*=\s*[\'"]([^\'"]+)[\'"]\s*;/', $version_php_file_content, $matches)) {
-            $release = $matches[1];
-        } else {
-            throw new moodle_exception('release not found in version.php', 'local_adlersetup');
-        }
-
-        if (preg_match('/\$plugin->version\s*=\s*([0-9]+)\s*;/', $version_php_file_content, $matches)) {
-            $version = $matches[1];
-        } else {
-            throw new moodle_exception('version not found in version.php', 'local_adlersetup');
-        }
-
-        return (object)[
-            'release' => $release,
-            'version' => $version
-        ];
     }
 
     protected function play_implementation(): bool {
