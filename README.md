@@ -9,13 +9,6 @@ TODO Provide more detailed description here.
 - Allow providing GitHub authentication
 
 
-- Plugins
-  - input: list of git_project and version 
-  - desired state: equal to input
-    - if version is below the desired state or plugin is not installed, update to desired state
-    - if version is above the desired state, fail
-    - if version is equal to the desired state, do nothing
-  - output: list of git_project and version
 - Roles
   - input: role name and list of capabilities and context where the role can be assigned
   - desired state: equal to input
@@ -49,25 +42,6 @@ TODO Provide more detailed description here.
   - desired state: equal to input
     - if language pack state does not match desired state, update it
   - output: list of all language packs with state (installed, not installed)
-
-
-## plugin install
-input
-  - github_project
-  - version
-  - moodle_name
-1) check update required
-   1) plugin not yet installed -> yes
-   2) plugin installed, desired version is release, installed version is below desired state -> yes
-   3) plugin installed, desired version is branch
-      1) get technical (eg 2024101000) version number of desired state from github (version.php)
-      2) check technical version number of installed plugin 
-         - is below or equal to desired version -> yes
-         - throw exception
-   4) plugin installed, desired version is equal to installed version -> do nothing
-   5) plugin installed, desired version is above installed version -> throw exception
-2) install/update plugins
-    - plugin_manager->install_plugins
 
 
 ## Installing via uploaded ZIP file ##
