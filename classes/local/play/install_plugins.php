@@ -32,6 +32,38 @@ class install_plugins extends base_play {
         parent::__construct($input);
     }
 
+
+    /**
+     * @throws downgrade_exception
+     * @throws moodle_exception
+     * @throws coding_exception
+     */
+    protected function play_implementation(): bool {
+        $state_changed = false;
+        $plugins_requiring_update = [];
+        foreach ($this->input as $plugin) {
+            if ($this->is_plugin_update_required($plugin)) {
+                $plugins_requiring_update[] = $plugin;
+                $state_changed = true;
+            }
+        }
+        $this->update_plugins($plugins_requiring_update);
+        return $state_changed;
+    }
+
+    public function get_output_implementation(): array {
+        $plugins_list = [];
+        foreach (plugin_manager::instance()->get_plugins() as $plugin_type => $plugins_by_type) {
+            foreach ($plugins_by_type as $plugin) {
+                $plugins_list[$plugin_type . '_' . $plugin->name] = [
+                    'release' => $plugin->release,
+                    'version' => $plugin->versiondb,
+                ];
+            }
+        }
+        return $plugins_list;
+    }
+
     /**
      * @param install_plugins_model[] $plugins
      * @throws coding_exception
@@ -139,23 +171,6 @@ class install_plugins extends base_play {
         return version_compare($desired_plugin->version, $installed_plugin_info->release, '>');
     }
 
-    /**
-     * @throws downgrade_exception
-     * @throws moodle_exception
-     * @throws coding_exception
-     */
-    protected function play_implementation(): bool {
-        $state_changed = false;
-        $plugins_requiring_update = [];
-        foreach ($this->input as $plugin) {
-            if ($this->is_plugin_update_required($plugin)) {
-                $plugins_requiring_update[] = $plugin;
-                $state_changed = true;
-            }
-        }
-        $this->update_plugins($plugins_requiring_update);
-        return $state_changed;
-    }
 
     /**
      * Update plugins in the moodle installation

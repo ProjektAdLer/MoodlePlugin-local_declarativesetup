@@ -59,7 +59,7 @@ class install_plugins_test extends adler_testcase {
     public function setUp(): void {
         parent::setUp();
         $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
-        $this->assertArrayNotHasKey('testplugin', $installed_mods, 'Plugin was already installed before test');
+        $this->assertArrayNotHasKey('testplugin', $installed_mods, 'Plugin was already installed before test. This can happen if a previous testrun was aborted.');
     }
 
     public function test_install_and_update_plugin() {
@@ -70,10 +70,12 @@ class install_plugins_test extends adler_testcase {
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $play->play();
+        $play_output = $play->get_output();
 
         // assert plugin mod_adleradaptivity is installed
         $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin was not installed');
+        $this->assertEquals('0.1.0', $play_output['local_testplugin']['release'], 'Installed version is not correct');
         $plugin_version = $installed_mods['testplugin'];
 
 
@@ -85,10 +87,12 @@ class install_plugins_test extends adler_testcase {
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $play->play();
+        $play_output = $play->get_output();
 
         $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
         $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
+        $this->assertEquals('0.1.1', $play_output['local_testplugin']['release'], 'Installed version is not correct');
 
 
         // test downgrade

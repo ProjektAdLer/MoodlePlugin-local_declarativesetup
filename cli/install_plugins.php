@@ -23,22 +23,30 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use local_adlersetup\local\playbook;
+
 define('CLI_SCRIPT', true);
 
 require(__DIR__.'/../../../config.php');
+global $CFG;
 require_once($CFG->libdir.'/clilib.php');
 
 // Get the cli options.
 list($options, $unrecognized) = cli_get_params(array(
-    'help' => false
+    'help' => false,
+    'install-plugins' => false, // Add the new parameter here
 ),
 array(
-    'h' => 'help'
+    'h' => 'help',
+    'i' => 'install-plugins', // Add a short option for the new parameter
 ));
 
 $help =
 "
 Help message for local_adlersetup cli script.
+
+Options:
+--install-plugins (-i)  Install plugins.
 
 Please include a list of options and associated actions.
 
@@ -54,3 +62,6 @@ if ($options['help']) {
     cli_writeln($help);
     die();
 }
+
+// Conditionally pass true or false to the playbook constructor
+$playbook = new playbook($options['install-plugins']);

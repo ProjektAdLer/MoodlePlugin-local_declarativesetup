@@ -52,7 +52,7 @@ abstract class base_play {
      * @throws play_was_not_played_exception
      * @throws not_implemented_exception
      */
-    public final function get_output(): object {
+    public final function get_output(): array {
         if (!$this->played) {
             throw new play_was_not_played_exception();
         }
@@ -75,7 +75,7 @@ abstract class base_play {
      * @return object The output of the action
      * @throws not_implemented_exception
      */
-    protected function get_output_implementation(): object {
+    protected function get_output_implementation(): array {
         throw new not_implemented_exception();
     }
 }
