@@ -4,7 +4,6 @@ namespace local_adlersetup\local\play;
 
 use coding_exception;
 use core\plugin_manager;
-use core\plugininfo\base;
 use core\session\manager;
 use core\update\api;
 use core_component;
@@ -17,7 +16,7 @@ use stdClass;
 
 global $CFG;
 require_once($CFG->libdir . '/clilib.php');
-require_once($CFG->libdir.'/adminlib.php');       // required for admin_apply_default_settings
+require_once($CFG->libdir . '/adminlib.php');       // required for admin_apply_default_settings
 
 
 class install_plugins extends base_play {
@@ -41,8 +40,7 @@ class install_plugins extends base_play {
      */
     private function update_plugins(array $plugins): void {
         $plugin_infos = [];
-        /** @var install_plugins_model $plugin */
-        foreach ($this->input as $plugin) {
+        foreach ($plugins as $plugin) {
             $github_release_info = $this->get_github_release_info($plugin);
 
             $raw_plugin_info_version = new stdClass();
@@ -105,7 +103,8 @@ class install_plugins extends base_play {
         foreach ($github_release_info->assets as $asset) {
             if ($asset->name === $asset_name) {
                 $md5sum_file = file_get_contents($asset->url);
-                return explode(' ', $md5sum_file)[0];            }
+                return explode(' ', $md5sum_file)[0];
+            }
         }
         throw new moodle_exception('md5 hash file not found');
     }
@@ -127,25 +126,17 @@ class install_plugins extends base_play {
      * @throws downgrade_exception If a plugin downgrade is attempted
      * @throws moodle_exception
      */
-    private function is_update_required(install_plugins_model $plugin): bool {
+    private function is_plugin_update_required(install_plugins_model $desired_plugin): bool {
         $plugin_manager = plugin_manager::instance();
-        $plugin_info = $plugin_manager->get_plugin_info($plugin->moodle_name);
-        if ($plugin_info === null) {
+        $installed_plugin_info = $plugin_manager->get_plugin_info($desired_plugin->moodle_name);
+        if ($installed_plugin_info === null) {
             // plugin is not installed
             return true;
         }
-        return $this->is_update_required_release_version($plugin, $plugin_info);
-    }
-
-    /**
-     * // TODO: rename
-     * @throws downgrade_exception
-     */
-    private function is_update_required_release_version(install_plugins_model $desired_plugin, base $installed_plugin): bool {
-        if (version_compare($desired_plugin->version, $installed_plugin->release, '<')) {
+        if (version_compare($desired_plugin->version, $installed_plugin_info->release, '<')) {
             throw new downgrade_exception('plugin downgrade is not allowed');
         }
-        return version_compare($desired_plugin->version, $installed_plugin->release, '>');
+        return version_compare($desired_plugin->version, $installed_plugin_info->release, '>');
     }
 
     /**
@@ -157,7 +148,7 @@ class install_plugins extends base_play {
         $state_changed = false;
         $plugins_requiring_update = [];
         foreach ($this->input as $plugin) {
-            if ($this->is_update_required($plugin)) {
+            if ($this->is_plugin_update_required($plugin)) {
                 $plugins_requiring_update[] = $plugin;
                 $state_changed = true;
             }
@@ -166,14 +157,12 @@ class install_plugins extends base_play {
         return $state_changed;
     }
 
-
     /**
      * Update plugins in the moodle installation
      *
-     * @return bool true if the moodle installation was updated, false otherwise
      * @throws coding_exception
      */
-    private function moodle_plugin_upgrade(): bool {
+    private function moodle_plugin_upgrade(): void {
         global $CFG;
 
         // have to reset cached plugin list, otherwise the new plugin is not recognized
@@ -199,7 +188,5 @@ class install_plugins extends base_play {
         upgrade_noncore(true);
         manager::set_user(get_admin());
         admin_apply_default_settings(null, false);
-
-        return true;
     }
 }
