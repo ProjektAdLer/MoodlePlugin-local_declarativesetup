@@ -19,6 +19,9 @@ require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/adminlib.php');       // required for admin_apply_default_settings
 
 
+/**
+ * @property install_plugins_model[] $input
+ */
 class install_plugins extends base_play {
     /** For testing purposes, allows to redirect the api calls to a different url.
      * @var string The base url for the GitHub api

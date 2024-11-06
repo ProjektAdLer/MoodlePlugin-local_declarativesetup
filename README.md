@@ -9,24 +9,13 @@ TODO Provide more detailed description here.
 - Allow providing GitHub authentication
 
 
-- Roles
-  - input: role name and list of capabilities and context where the role can be assigned
-  - desired state: equal to input
-    - if role is not present, create it
-    - if role is present, and capabilities are not equal, update capabilities
-    - if role is present, and context is not equal, update context
-  - output: role name and list of capabilities and context where the role can be assigned
+
 - web services
   - input: enabled, protocol_rest enable
   - desired state: equal to input
     - if web service enabled state does not match "enabled", update it
     - if protocol_rest enabled state does not match "protocol_rest enabled", update it
   - output: enabled, protocol_rest enabled
-- role capabilities
-  - input: role name and capability with state (allow, prohibit, prevent)
-  - desired state: equal to input
-    - if capability state does not match desired state, update it
-  - output: role name and all capability with state (allow, prohibit, prevent) 
 - User
   - input: name, password, first name (optional), last name (optional), email (optional), role (optional), create adler course category (default false, requires local_adler plugin)
   - desired state: equal to input

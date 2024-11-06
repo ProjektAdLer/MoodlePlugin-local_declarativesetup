@@ -7,6 +7,8 @@ use local_adlersetup\local\play\exceptions\play_was_already_played_exception;
 use local_adlersetup\local\play\exceptions\play_was_not_played_exception;
 use local_adlersetup\local\play\install_plugins;
 use local_adlersetup\local\play\models\install_plugins_model;
+use local_adlersetup\local\play\models\role_model;
+use local_adlersetup\local\play\role;
 use moodle_exception;
 
 class playbook {
@@ -36,6 +38,33 @@ class playbook {
         if (!array_key_exists('local_adler', $installed_plugins)) {
             throw new moodle_exception('Plugins are not installed (checked for local_adler)', 'local_adlersetup');
         }
+
+
+        $play = new role(new role_model(
+            'adler_manager',
+            [
+                'moodle/course:delete' => CAP_ALLOW,
+                'moodle/course:enrolconfig' => CAP_ALLOW,
+                'moodle/question:add' => CAP_ALLOW,
+                'moodle/question:managecategory' => CAP_ALLOW,
+                'moodle/restore:configure' => CAP_ALLOW,
+                'moodle/restore:restoreactivity' => CAP_ALLOW,
+                'moodle/restore:restorecourse' => CAP_ALLOW,
+                'moodle/restore:restoresection' => CAP_ALLOW,
+                'moodle/restore:restoretargetimport' => CAP_ALLOW,
+                'moodle/restore:rolldates' => CAP_ALLOW,
+                'moodle/restore:uploadfile' => CAP_ALLOW,
+                'moodle/restore:userinfo' => CAP_ALLOW,
+                'moodle/restore:viewautomatedfilearea' => CAP_ALLOW
+            ],
+            [
+                CONTEXT_COURSECAT
+            ],
+            'adler_manager',
+            'Manager for adler courses. Has all permissions required to work with the authoring tool.',
+            'user'
+        ));
+        $play->play();
 
     }
 }

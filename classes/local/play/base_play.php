@@ -6,6 +6,7 @@ namespace local_adlersetup\local\play;
 use local_adlersetup\local\play\exceptions\not_implemented_exception;
 use local_adlersetup\local\play\exceptions\play_was_already_played_exception;
 use local_adlersetup\local\play\exceptions\play_was_not_played_exception;
+use stdClass;
 
 abstract class base_play {
     protected object|array $input;
