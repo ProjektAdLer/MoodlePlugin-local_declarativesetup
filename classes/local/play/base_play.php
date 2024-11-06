@@ -16,7 +16,7 @@ abstract class base_play {
     }
 
     /**
-     * Play the action. To implement this method, override the @link play_implementation method
+     * Play the action. To implement this method, override the {@link play_implementation} method
      *
      * @return bool True if state changed, false otherwise
      * @throws play_was_already_played_exception
@@ -46,9 +46,9 @@ abstract class base_play {
     }
 
     /**
-     * Get the output of the action. To implement this method, override the @link get_output_implementation method
+     * Get the output of the action. To implement this method, override the {@link get_output_implementation} method
      *
-     * @return object The output of the action
+     * @return array The output of the action
      * @throws play_was_not_played_exception
      * @throws not_implemented_exception
      */
@@ -72,7 +72,7 @@ abstract class base_play {
     /**
      * Implementation of the get_output method
      *
-     * @return object The output of the action
+     * @return array The output of the action
      * @throws not_implemented_exception
      */
     protected function get_output_implementation(): array {

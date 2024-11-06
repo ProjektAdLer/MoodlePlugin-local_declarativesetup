@@ -26,6 +26,10 @@ class install_plugins extends base_play {
     public string $github_api_url = "https://api.github.com";
 
     /**
+     * This play takes a list of {@link install_plugins_model} and ensure that these plugins in the specified version are installed.
+     *
+     * {@link get_output} returns a list of all installed plugins: [<plugin_name> => ['release' => <version>, 'version' => <version>]]
+     *
      * @param install_plugins_model[] $input
      */
     public function __construct(array $input) {
