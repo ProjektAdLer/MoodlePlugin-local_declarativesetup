@@ -15,7 +15,7 @@
   "published_at": "2024-10-08T10:28:29Z",
   "assets": [
     {
-      "url": "http://localhost:8080/moodle-local_testplugin-VERSION_NUMBER.zip",
+      "url": "http://localhost:48531/moodle-local_testplugin-VERSION_NUMBER.zip",
       "id": null,
       "node_id": "---",
       "name": "moodle-local_testplugin-VERSION_NUMBER.zip",
@@ -30,7 +30,7 @@
       "browser_download_url": "---"
     },
     {
-      "url": "http://localhost:8080/moodle-local_testplugin-VERSION_NUMBER.zip.md5",
+      "url": "http://localhost:48531/moodle-local_testplugin-VERSION_NUMBER.zip.md5",
       "id": -1,
       "node_id": "---",
       "name": "moodle-local_testplugin-VERSION_NUMBER.zip.md5",

@@ -9,7 +9,7 @@ use core\session\manager;
 use core\update\api;
 use core_component;
 use core_plugin_manager;
-use invalid_parameter_exception;
+use ddl_exception;
 use local_adlersetup\local\play\exceptions\downgrade_exception;
 use local_adlersetup\local\play\models\install_plugins_model;
 use moodle_exception;
@@ -37,8 +37,9 @@ class install_plugins extends base_play {
      * @param install_plugins_model[] $plugins
      * @throws coding_exception
      * @throws moodle_exception
+     * @throws ddl_exception
      */
-    private function update_plugins(array $plugins) {
+    private function update_plugins(array $plugins): void {
         $plugin_infos = [];
         /** @var install_plugins_model $plugin */
         foreach ($this->input as $plugin) {
@@ -79,10 +80,19 @@ class install_plugins extends base_play {
         $this->moodle_plugin_upgrade();
     }
 
+    /**
+     * @throws ddl_exception
+     */
     private function get_github_release_info(install_plugins_model $plugin): stdClass {
         $request_url = "{$this->github_api_url}/repos/{$plugin->github_project}/releases/tags/{$plugin->version}";
         $response = file_get_contents($request_url);
-        return json_decode($response);
+
+        $response = json_decode($response);
+        if ($response === null || !property_exists($response, 'assets')) {
+            throw new ddl_exception('failed to get release info');
+        }
+
+        return $response;
     }
 
     /**
@@ -124,11 +134,7 @@ class install_plugins extends base_play {
             // plugin is not installed
             return true;
         }
-        if ($this->is_release_version($plugin)) {
-            return $this->is_update_required_release_version($plugin, $plugin_info);
-        } else {
-            throw new invalid_parameter_exception('branch version not supported');
-        }
+        return $this->is_update_required_release_version($plugin, $plugin_info);
     }
 
     /**
@@ -140,10 +146,6 @@ class install_plugins extends base_play {
             throw new downgrade_exception('plugin downgrade is not allowed');
         }
         return version_compare($desired_plugin->version, $installed_plugin->release, '>');
-    }
-
-    private function is_release_version(install_plugins_model $plugin): bool {
-        return preg_match('/^[0-9]+(\.[0-9]+){0,2}(-rc(\.[0-9]+)?)?$/', $plugin->version);
     }
 
     /**

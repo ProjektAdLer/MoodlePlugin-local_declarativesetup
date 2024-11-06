@@ -1,10 +1,10 @@
 <?php
 
 $files = [
-    'moodle-local_testplugin-1.0.0.zip',
-    'moodle-local_testplugin-1.0.1.zip',
-    'moodle-local_testplugin-1.0.0.zip.md5',
-    'moodle-local_testplugin-1.0.1.zip.md5',
+    'moodle-local_testplugin-0.1.0.zip',
+    'moodle-local_testplugin-0.1.1.zip',
+    'moodle-local_testplugin-0.1.0.zip.md5',
+    'moodle-local_testplugin-0.1.1.zip.md5',
 ];
 
 foreach ($files as $file) {
@@ -27,4 +27,4 @@ if (preg_match('/releases\/tags\/([0-9]+\.[0-9]+\.[0-9]+[a-zA-Z-_.]*)/', $_SERVE
     return true;
 }
 
-return false;
+exit(1);
