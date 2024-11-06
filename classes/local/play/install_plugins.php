@@ -1,58 +1,52 @@
 <?php
 
-namespace local_adlersetup\classes\local\play;
+namespace local_adlersetup\local\play;
 
 use coding_exception;
-use core\di;
 use core\plugin_manager;
+use core\plugininfo\base;
 use core\session\manager;
 use core\update\api;
-use core\update\remote_info;
 use core_component;
 use core_plugin_manager;
 use invalid_parameter_exception;
-use local_adlersetup\classes\local\play\exceptions\downgrade_exception;
-use local_adlersetup\classes\local\play\models\InstallPluginsModel;
+use local_adlersetup\local\play\exceptions\downgrade_exception;
+use local_adlersetup\local\play\models\install_plugins_model;
 use moodle_exception;
 use stdClass;
 
-class InstallPlugins extends BasePlay {
+global $CFG;
+require_once($CFG->libdir . '/clilib.php');
+require_once($CFG->libdir.'/adminlib.php');       // required for admin_apply_default_settings
+
+
+class install_plugins extends base_play {
+    /** For testing purposes, allows to redirect the api calls to a different url.
+     * @var string The base url for the GitHub api
+     */
+    public string $github_api_url = "https://api.github.com";
+
     /**
-     * InstallPlugins constructor.
-     * @param InstallPluginsModel[] $input
+     * @param install_plugins_model[] $input
      */
     public function __construct(array $input) {
         parent::__construct($input);
     }
 
     /**
-     * @throws moodle_exception
-     * @throws downgrade_exception
-     */
-    public function play(): bool {
-        $state_changed = false;
-        $plugins_requiring_update = [];
-        foreach ($this->input as $plugin) {
-            if ($this->is_update_required($plugin)) {
-                $plugins_requiring_update[] = $plugin;
-                $state_changed = true;
-            }
-        }
-        $this->update_plugins($plugins_requiring_update);
-        return $state_changed;
-    }
-
-    /**
-     * @param InstallPluginsModel[] $plugins
+     * @param install_plugins_model[] $plugins
      * @throws coding_exception
+     * @throws moodle_exception
      */
     private function update_plugins(array $plugins) {
         $plugin_infos = [];
-        /** @var InstallPluginsModel $plugin */
+        /** @var install_plugins_model $plugin */
         foreach ($this->input as $plugin) {
+            $github_release_info = $this->get_github_release_info($plugin);
+
             $raw_plugin_info_version = new stdClass();
-            $raw_plugin_info_version->downloadurl = $this->get_plugin_download_url($plugin);
-            $raw_plugin_info_version->downloadmd5 = $this->get_plugin_md5_hash($plugin);
+            $raw_plugin_info_version->downloadurl = $this->get_plugin_zip_download_url($github_release_info, $plugin);
+            $raw_plugin_info_version->downloadmd5 = $this->get_plugin_zip_md5_hash($github_release_info, $plugin);
             $raw_plugin_info_version->id = 42;  // required, but not relevant here, very likely the id of the version in the moodle plugin repository
             $raw_plugin_info_version->version = 42;  // required, but not relevant here, long version, e.g. 2016052300
 
@@ -62,21 +56,69 @@ class InstallPlugins extends BasePlay {
             $raw_plugin_info_root->name = $plugin->moodle_name;  // human readable name - i dont care about this here
             $raw_plugin_info_root->component = $plugin->moodle_name;
 
-            $plugin_infos[] = di::get(api::class)->validate_pluginfo_format($raw_plugin_info_root);
+            // adding all the "not required" fields ... moodle things ...
+            $raw_plugin_info_root->source = null;
+            $raw_plugin_info_root->doc = null;
+            $raw_plugin_info_root->bugs = null;
+            $raw_plugin_info_root->discussion = null;
+            $raw_plugin_info_version->release = null;
+            $raw_plugin_info_version->maturity = null;
+            $raw_plugin_info_version->vcssystem = null;
+            $raw_plugin_info_version->vcssystemother = null;
+            $raw_plugin_info_version->vcsrepositoryurl = null;
+            $raw_plugin_info_version->vcsbranch = null;
+            $raw_plugin_info_version->vcstag = null;
+            $raw_plugin_info_version->supportedmoodles = null;
+
+            $plugin_infos[] = api::client()->validate_pluginfo_format($raw_plugin_info_root);
         }
 
-        $plugin_manager = di::get(plugin_manager::class);
+        $plugin_manager = plugin_manager::instance();
         $plugin_manager->install_plugins($plugin_infos, true, false);
 
         $this->moodle_plugin_upgrade();
+    }
+
+    private function get_github_release_info(install_plugins_model $plugin): stdClass {
+        $request_url = "{$this->github_api_url}/repos/{$plugin->github_project}/releases/tags/{$plugin->version}";
+        $response = file_get_contents($request_url);
+        return json_decode($response);
+    }
+
+    /**
+     * Downloads the md5 hash file for the zip and returns the file content
+     *
+     * @throws moodle_exception
+     */
+    private function get_plugin_zip_md5_hash(stdClass $github_release_info, install_plugins_model $plugin): string {
+        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
+        foreach ($github_release_info->assets as $asset) {
+            if ($asset->name === $asset_name) {
+                $md5sum_file = file_get_contents($asset->url);
+                return explode(' ', $md5sum_file)[0];            }
+        }
+        throw new moodle_exception('md5 hash file not found');
+    }
+
+    /**
+     * @throws moodle_exception
+     */
+    private function get_plugin_zip_download_url(stdClass $github_release_info, install_plugins_model $plugin): string {
+        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip";
+        foreach ($github_release_info->assets as $asset) {
+            if ($asset->name === $asset_name) {
+                return $asset->url;
+            }
+        }
+        throw new moodle_exception('zip file not found');
     }
 
     /**
      * @throws downgrade_exception If a plugin downgrade is attempted
      * @throws moodle_exception
      */
-    private function is_update_required(InstallPluginsModel $plugin): bool {
-        $plugin_manager = di::get(plugin_manager::class);
+    private function is_update_required(install_plugins_model $plugin): bool {
+        $plugin_manager = plugin_manager::instance();
         $plugin_info = $plugin_manager->get_plugin_info($plugin->moodle_name);
         if ($plugin_info === null) {
             // plugin is not installed
@@ -90,40 +132,38 @@ class InstallPlugins extends BasePlay {
     }
 
     /**
+     * // TODO: rename
      * @throws downgrade_exception
      */
-    private function is_update_required_release_version(InstallPluginsModel $desired_plugin, array $installed_plugin): bool {
-        if (version_compare($desired_plugin->version, $installed_plugin['version'], '<')) {
+    private function is_update_required_release_version(install_plugins_model $desired_plugin, base $installed_plugin): bool {
+        if (version_compare($desired_plugin->version, $installed_plugin->release, '<')) {
             throw new downgrade_exception('plugin downgrade is not allowed');
         }
-        return version_compare($desired_plugin->version, $installed_plugin['version'], '>');
+        return version_compare($desired_plugin->version, $installed_plugin->release, '>');
     }
 
-    private function is_release_version(InstallPluginsModel $plugin): bool {
+    private function is_release_version(install_plugins_model $plugin): bool {
         return preg_match('/^[0-9]+(\.[0-9]+){0,2}(-rc(\.[0-9]+)?)?$/', $plugin->version);
     }
 
+    /**
+     * @throws downgrade_exception
+     * @throws moodle_exception
+     * @throws coding_exception
+     */
     protected function play_implementation(): bool {
-        // TODO: Implement play_implementation() method.
+        $state_changed = false;
+        $plugins_requiring_update = [];
+        foreach ($this->input as $plugin) {
+            if ($this->is_update_required($plugin)) {
+                $plugins_requiring_update[] = $plugin;
+                $state_changed = true;
+            }
+        }
+        $this->update_plugins($plugins_requiring_update);
+        return $state_changed;
     }
 
-    /**
-     * Downloads the md5 hash file and returns the file content
-     *
-     * @param InstallPluginsModel $plugin
-     * @return string
-     */
-    private function get_plugin_md5_hash(InstallPluginsModel $plugin): string {
-        download_file_content($this->get_plugin_md5_hash_url($plugin));
-    }
-
-    /**
-     * Generates the download url for the plugin
-     *
-     * @param InstallPluginsModel $plugin
-     * @return string
-     */
-    private function get_plugin_download_url(mixed $plugin): string {}
 
     /**
      * Update plugins in the moodle installation
@@ -134,10 +174,8 @@ class InstallPlugins extends BasePlay {
     private function moodle_plugin_upgrade(): bool {
         global $CFG;
 
-        if (!moodle_needs_upgrading(false)) {
-            cli_writeln("Moodle does not need upgrading");
-            return false;
-        }
+        // have to reset cached plugin list, otherwise the new plugin is not recognized
+        core_component::reset();
 
         // this checks for moodle dependencies and so on. I don't think it is necessary for the plugin installation,
         // but I am not sure, and it does not hurt to call it.

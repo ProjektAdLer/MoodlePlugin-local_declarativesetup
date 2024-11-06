@@ -1,0 +1,51 @@
+{
+  "url": "---",
+  "assets_url": "---",
+  "upload_url": "---",
+  "html_url": "---",
+  "id": -1,
+  "author": {},
+  "node_id": "---",
+  "tag_name": "VERSION_NUMBER",
+  "target_commitish": "main",
+  "name": "VERSION_NUMBER",
+  "draft": false,
+  "prerelease": false,
+  "created_at": "2024-10-01T18:44:52Z",
+  "published_at": "2024-10-08T10:28:29Z",
+  "assets": [
+    {
+      "url": "http://localhost:8080/moodle-local_testplugin-VERSION_NUMBER.zip",
+      "id": null,
+      "node_id": "---",
+      "name": "moodle-local_testplugin-VERSION_NUMBER.zip",
+      "label": "",
+      "uploader": {},
+      "content_type": "binary/octet-stream",
+      "state": "uploaded",
+      "size": -1,
+      "download_count": 0,
+      "created_at": "2024-10-08T10:28:43Z",
+      "updated_at": "2024-10-08T10:28:43Z",
+      "browser_download_url": "---"
+    },
+    {
+      "url": "http://localhost:8080/moodle-local_testplugin-VERSION_NUMBER.zip.md5",
+      "id": -1,
+      "node_id": "---",
+      "name": "moodle-local_testplugin-VERSION_NUMBER.zip.md5",
+      "label": "",
+      "uploader": {},
+      "content_type": "binary/octet-stream",
+      "state": "uploaded",
+      "size": -1,
+      "download_count": 0,
+      "created_at": "2024-10-08T10:28:43Z",
+      "updated_at": "2024-10-08T10:28:43Z",
+      "browser_download_url": "---"
+    }
+  ],
+  "tarball_url": "---",
+  "zipball_url": "---",
+  "body": "---"
+}
