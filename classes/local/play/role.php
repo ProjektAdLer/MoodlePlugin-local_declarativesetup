@@ -4,10 +4,11 @@ namespace local_adlersetup\local\play;
 
 use coding_exception;
 use core\di;
+use dml_exception;
 use local_adlersetup\local\db\moodle_core_repository;
 use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\models\install_plugins_model;
 use local_adlersetup\local\play\models\role_model;
+use stdClass;
 
 global $CFG;
 require_once($CFG->libdir . '/clilib.php');
@@ -18,8 +19,6 @@ require_once($CFG->libdir . '/clilib.php');
  */
 class role extends base_play {
     /**
-     * // TODO
-     *
      * This play takes a {@link role_model} and ensures that the role exists with the specified capabilities and contexts.
      *
      * {@link get_output} returns a list of all roles as an array of {@link role_model} objects.
@@ -33,21 +32,22 @@ class role extends base_play {
 
     /**
      * @throws coding_exception
+     * @throws dml_exception
      */
     protected function play_implementation(): bool {
         $state_changed = false;
 
         // get role by name
-        $role_id = $this->get_role_id($this->input->role_name);
-        if ($role_id !== false) {
-            // compare role capabilities
-            $capabilities_changed = $this->update_role_capabilities($role_id);
-            if ($capabilities_changed) {
-                $state_changed = true;
-            }
-            // compare role contexts
-            $contexts_changed = $this->update_role_contexts($role_id);
-            if ($contexts_changed) {
+        $role = $this->get_role($this->input->shortname);
+        if ($role !== false) {
+            // compare and update role properties
+            $properties_changed = $this->update_role_properties($role);
+            // compare and update role capabilities
+            $capabilities_changed = $this->update_role_capabilities($role->id);
+            // compare and update role contexts
+            $contexts_changed = $this->update_role_contexts($role->id);
+
+            if ($properties_changed || $capabilities_changed || $contexts_changed) {
                 $state_changed = true;
             }
         } else {
@@ -57,6 +57,18 @@ class role extends base_play {
         }
 
         return $state_changed;
+    }
+
+    /**
+     * @return bool True if state changed, false otherwise
+     * @throws dml_exception
+     */
+    private function update_role_properties(stdClass $role): bool {
+        if ($role->shortname != $this->input->shortname || $role->description != $this->input->description || $role->archetype != $this->input->archetype) {
+            di::get(moodle_core_repository::class)->update_role($role->id, $this->input->shortname, $this->input->description, $this->input->archetype);
+            return true;
+        }
+        return false;
     }
 
 
@@ -77,6 +89,7 @@ class role extends base_play {
     /**
      * @return bool True if state changed, false otherwise
      * @throws coding_exception
+     * @throws dml_exception
      */
     private function update_role_capabilities(int $role_id): bool {
         $state_changed = false;
@@ -128,10 +141,10 @@ class role extends base_play {
         set_role_contextlevels($role_id, $this->input->list_of_contexts);
     }
 
-    private function get_role_id(string $role_name): int|false {
+    private function get_role(string $role_name): stdClass|false {
         foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
             if ($role->name == $role_name) {
-                return $role->id;
+                return $role;
             }
         }
         return false;
@@ -144,7 +157,7 @@ class role extends base_play {
                 $capabilities[$capability->capability] = intval($capability->permission);
             }
 
-            $roles[$role->name] = new role_model(
+            $roles[$role->shortname] = new role_model(
                 $role->name,
                 $capabilities,
                 array_map('intval', get_role_contextlevels($role->id)),

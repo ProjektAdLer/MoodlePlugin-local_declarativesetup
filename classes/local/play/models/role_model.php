@@ -13,7 +13,7 @@ class role_model {
      * @param string $description
      * @param string $archetype
      */
-    public function __construct(string $role_name, array $list_of_capabilities, array $list_of_contexts, string|null $shortname = null, string $description = '', string $archetype = '') {
+    public function __construct(string $shortname, array $list_of_capabilities, array $list_of_contexts, string|null $role_name = null, string $description = '', string $archetype = '') {
         // assert all list_of_contexts keys are integers
         foreach ($list_of_contexts as $context) {
             if (!is_int($context)) {
@@ -31,10 +31,10 @@ class role_model {
             }
         }
 
-        $this->role_name = $role_name;
+        $this->role_name = $role_name ?? $shortname;
         $this->list_of_capabilities = $list_of_capabilities;
         $this->list_of_contexts = $list_of_contexts;
-        $this->shortname = $shortname ?? $role_name;
+        $this->shortname = $shortname;
         $this->description = $description;
         $this->archetype = $archetype;
     }
