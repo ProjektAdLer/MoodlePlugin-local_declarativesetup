@@ -1,10 +1,9 @@
 <?php
 
-namespace local\play;
+namespace local_adlersetup\local\play;
 
 use local_adlersetup\lib\adler_testcase;
 use local_adlersetup\local\play\models\role_model;
-use local_adlersetup\local\play\role;
 
 global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
@@ -93,6 +92,4 @@ class roles_test extends adler_testcase {
         $this->assertEquals($play->get_output()['test_role']->description, 'This is a test role');
         $this->assertEquals($play->get_output()['test_role']->archetype, 'manager');
     }
-
-    // TODO: further tests like updating
 }
