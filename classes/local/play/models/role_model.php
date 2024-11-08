@@ -2,32 +2,33 @@
 
 namespace local_adlersetup\local\play\models;
 
-use InvalidArgumentException;
+use invalid_parameter_exception;
 
 class role_model {
     /**
-     * @param string $role_name
+     * @param string $shortname defaults to {@link $role_name}
      * @param array[] $list_of_capabilities {@link $list_of_capabilities}
      * @param int[] $list_of_contexts {@link $list_of_contexts}
-     * @param string|null $shortname defaults to {@link $role_name}
+     * @param string|null $role_name
      * @param string $description
      * @param string $archetype
+     * @throws invalid_parameter_exception
      */
     public function __construct(string $shortname, array $list_of_capabilities, array $list_of_contexts, string|null $role_name = null, string $description = '', string $archetype = '') {
         // assert all list_of_contexts keys are integers
         foreach ($list_of_contexts as $context) {
             if (!is_int($context)) {
-                throw new InvalidArgumentException('Contexts must be integers');
+                throw new invalid_parameter_exception('Contexts must be integers');
             }
         }
 
         // assert all list_of_contexts keys are integers
         foreach ($list_of_capabilities as $capability => $permission) {
             if (!is_string($capability)) {
-                throw new InvalidArgumentException('Capability key must be a string');
+                throw new invalid_parameter_exception('Capability key must be a string');
             }
             if (!is_int($permission)) {
-                throw new InvalidArgumentException('Permission value must be an integer');
+                throw new invalid_parameter_exception('Permission value must be an integer');
             }
         }
 
