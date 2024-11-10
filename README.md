@@ -9,13 +9,6 @@ TODO Provide more detailed description here.
 - Allow providing GitHub authentication
 
 
-
-- web services
-  - input: enabled, protocol_rest enable
-  - desired state: equal to input
-    - if web service enabled state does not match "enabled", update it
-    - if protocol_rest enabled state does not match "protocol_rest enabled", update it
-  - output: enabled, protocol_rest enabled
 - User
   - input: name, password, first name (optional), last name (optional), email (optional), role (optional), create adler course category (default false, requires local_adler plugin)
   - desired state: equal to input
