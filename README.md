@@ -9,16 +9,14 @@ TODO Provide more detailed description here.
 - Allow providing GitHub authentication
 
 
-- User
-  - input: name, password, first name (optional), last name (optional), email (optional), role (optional), create adler course category (default false, requires local_adler plugin)
-  - desired state: equal to input
-    - if user is not present, create it
-    - if user is present, and password is not equal, update password
-    - if user is present, and first name is not equal, update first name
-    - if user is present, and last name is not equal, update last name
-    - if user is present, and email is not equal, update email
-    - if user is present, and role is not equal, update role
-  - output: user with all relevant information
+- Course Category
+  - input: 
+    - path, 
+    - present/absent, 
+    - users with 
+      - roles
+      - present/absent
+    - users append/replace
 - Language pack
   - input: list of language packs with state (installed, not installed)
   - desired state: equal to input

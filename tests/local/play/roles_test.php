@@ -14,6 +14,7 @@ class roles_test extends adler_testcase {
             'test_role',
             ['moodle/question:add' => CAP_ALLOW, 'moodle/restore:restoresection' => CAP_ALLOW],
             [CONTEXT_COURSECAT],
+            'Test Role',
         );
 
         $play = new role($role);

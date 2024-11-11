@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\models;
 
 use invalid_parameter_exception;
 use local_adlersetup\lib\adler_testcase;

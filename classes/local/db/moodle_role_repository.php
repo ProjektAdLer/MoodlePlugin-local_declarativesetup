@@ -5,7 +5,7 @@ namespace local_adlersetup\local\db;
 
 use dml_exception;
 
-class moodle_core_repository extends base_repository {
+class moodle_role_repository extends base_repository {
     /**
      * @throws dml_exception
      */

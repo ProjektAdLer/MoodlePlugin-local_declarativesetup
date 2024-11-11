@@ -5,7 +5,7 @@ namespace local_adlersetup\local\play;
 use coding_exception;
 use core\di;
 use dml_exception;
-use local_adlersetup\local\db\moodle_core_repository;
+use local_adlersetup\local\db\moodle_role_repository;
 use local_adlersetup\local\moodle_core;
 use local_adlersetup\local\play\models\role_model;
 use stdClass;
@@ -65,7 +65,7 @@ class role extends base_play {
      */
     private function update_role_properties(stdClass $role): bool {
         if ($role->shortname != $this->input->shortname || $role->description != $this->input->description || $role->archetype != $this->input->archetype) {
-            di::get(moodle_core_repository::class)->update_role($role->id, $this->input->shortname, $this->input->description, $this->input->archetype);
+            di::get(moodle_role_repository::class)->update_role($role->id, $this->input->shortname, $this->input->description, $this->input->archetype);
             return true;
         }
         return false;
@@ -94,7 +94,7 @@ class role extends base_play {
     private function update_role_capabilities(int $role_id): bool {
         $state_changed = false;
         // compare existing role against desired role and remove capabilities that are not in the desired capabilities
-        foreach (di::get(moodle_core_repository::class)->get_capabilities_of_role($role_id) as $capability) {
+        foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role_id) as $capability) {
             if (!array_key_exists($capability->capability, $this->input->list_of_capabilities)) {
                 di::get(moodle_core::class)::unassign_capability($capability->capability, $role_id);
                 $state_changed = true;
@@ -105,7 +105,7 @@ class role extends base_play {
         // assign new capabilities and update existing capabilities
         foreach ($this->input->list_of_capabilities as $capability => $permission) {
             $capability_exists = false;
-            foreach (di::get(moodle_core_repository::class)->get_capabilities_of_role($role_id) as $existing_capability) {
+            foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role_id) as $existing_capability) {
                 if ($existing_capability->capability == $capability) {
                     $capability_exists = true;
                     if ($existing_capability->permission != $permission) {
@@ -141,9 +141,9 @@ class role extends base_play {
         set_role_contextlevels($role_id, $this->input->list_of_contexts);
     }
 
-    private function get_role(string $role_name): stdClass|false {
+    private function get_role(string $role_shortname): stdClass|false {
         foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
-            if ($role->name == $role_name) {
+            if ($role->shortname == $role_shortname) {
                 return $role;
             }
         }
@@ -153,7 +153,7 @@ class role extends base_play {
     public function get_output_implementation(): array {
         foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
             $capabilities = [];
-            foreach (di::get(moodle_core_repository::class)->get_capabilities_of_role($role->id) as $capability) {
+            foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role->id) as $capability) {
                 $capabilities[$capability->capability] = intval($capability->permission);
             }
 
