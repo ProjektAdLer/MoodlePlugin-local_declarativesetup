@@ -9,14 +9,7 @@ TODO Provide more detailed description here.
 - Allow providing GitHub authentication
 
 
-- Course Category
-  - input: 
-    - path, 
-    - present/absent, 
-    - users with 
-      - roles
-      - present/absent
-    - users append/replace
+
 - Language pack
   - input: list of language packs with state (installed, not installed)
   - desired state: equal to input

@@ -38,7 +38,7 @@ class role extends base_play {
         $state_changed = false;
 
         // get role by name
-        $role = $this->get_role($this->input->shortname);
+        $role = di::get(moodle_core::class)::get_role($this->input->shortname);
         if ($role !== false) {
             // compare and update role properties
             $properties_changed = $this->update_role_properties($role);
@@ -139,15 +139,6 @@ class role extends base_play {
 
         // set context levels where the role can be assigned
         set_role_contextlevels($role_id, $this->input->list_of_contexts);
-    }
-
-    private function get_role(string $role_shortname): stdClass|false {
-        foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
-            if ($role->shortname == $role_shortname) {
-                return $role;
-            }
-        }
-        return false;
     }
 
     public function get_output_implementation(): array {

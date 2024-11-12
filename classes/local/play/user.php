@@ -151,24 +151,12 @@ class user extends base_play {
         }
         // add roles in $this->input->roles
         foreach ($this->input->system_roles as $role_shortname) {
-            $role_id = $this->get_role($role_shortname)->id;
+            $role_id = di::get(moodle_core::class)::get_role($role_shortname)->id;
             if (!in_array($role_id, $user_roles)) {
                 role_assign($role_id, $user->id, context_system::instance()->id);
                 $state_changed = true;
             }
         }
         return $state_changed;
-    }
-
-    /**
-     * @throws invalid_parameter_exception
-     */
-    private function get_role(string $role_shortname): stdClass {
-        foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
-            if ($role->shortname == $role_shortname) {
-                return $role;
-            }
-        }
-        throw new invalid_parameter_exception('Role not found');
     }
 }

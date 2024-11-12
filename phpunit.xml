@@ -44,6 +44,7 @@
   <coverage>
     <include>
       <directory suffix=".php">classes</directory>
+      <directory suffix=".php">cli</directory>
       <!--      <directory suffix=".php">tests/generator</directory>-->
       <file>lib.php</file>
       <file>locallib.php</file>
@@ -54,7 +55,6 @@
     </include>
     <exclude>
       <directory suffix=".php">tests</directory>
-      <directory suffix=".php">dev_utils</directory>
     </exclude>
   </coverage>
 
