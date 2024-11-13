@@ -12,7 +12,6 @@ global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
 
 class install_plugins_test extends adler_testcase {
-
     private static Process $webserver_process;
 
     public static function setUpBeforeClass(): void {
@@ -69,9 +68,10 @@ class install_plugins_test extends adler_testcase {
             'local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
-        $play->play();
+        $changed = $play->play();
         $play_output = $play->get_output();
 
+        $this->assertTrue($changed, 'Plugin was not installed');
         // assert plugin mod_adleradaptivity is installed
         $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin was not installed');
@@ -86,9 +86,10 @@ class install_plugins_test extends adler_testcase {
             'local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
-        $play->play();
+        $changed = $play->play();
         $play_output = $play->get_output();
 
+        $this->assertTrue($changed, 'Plugin was not updated');
         $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
         $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
@@ -103,7 +104,9 @@ class install_plugins_test extends adler_testcase {
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $this->expectExceptionMessage('plugin downgrade is not allowed');
-        $play->play();
+        $changed = $play->play();
+
+        $this->assertFalse($changed, 'Plugin was downgraded');
     }
 
     public function test_install_plugin_with_branch() {

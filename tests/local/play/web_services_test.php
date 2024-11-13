@@ -19,6 +19,7 @@ class web_services_test extends adler_testcase {
         $php_mock->shouldNotReceive('file_put_contents');
         di::set(php::class, $php_mock);
         $CFG->config_php_settings = ['enablewebservices' => true];
+        set_config('webserviceprotocols', '');
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_ENABLED,
@@ -26,8 +27,32 @@ class web_services_test extends adler_testcase {
             [],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
+        $this->assertEquals(true, $CFG->enablewebservices);
+        $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
+    }
+
+
+    public function test_enable_rest_protocol_already_enabled(): void {
+        global $CFG;
+
+        $php_mock = Mockery::mock(php::class)->makePartial();
+        $php_mock->shouldNotReceive('file_put_contents');
+        di::set(php::class, $php_mock);
+        $CFG->config_php_settings = ['enablewebservices' => true];
+        set_config('webserviceprotocols', 'rest');
+
+        $play = new web_services(new web_services_model(
+            web_services_model::STATE_ENABLED,
+            ['rest'],
+            [],
+            web_services_model::STATE_UNSET));
+
+        $changed = $play->play();
+
+        $this->assertFalse($changed);
         $this->assertEquals(true, $CFG->enablewebservices);
         $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
     }
@@ -52,8 +77,9 @@ class web_services_test extends adler_testcase {
             ['*'],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
         $this->assertStringContainsString('webserviceprotocols', $capturedData);
         $this->assertStringContainsString('\'rest\'', $capturedData);
@@ -81,8 +107,9 @@ class web_services_test extends adler_testcase {
             [],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertEquals('rest', $CFG->webserviceprotocols);
         $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
     }
@@ -106,8 +133,9 @@ class web_services_test extends adler_testcase {
             ['*'],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         // get the line that contains the webserviceprotocols setting
         preg_match('/.*webserviceprotocols.*$/m', $capturedData, $matches);
         $this->assertStringContainsString('rest', $matches[0]);
@@ -133,8 +161,9 @@ class web_services_test extends adler_testcase {
             ['*'],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         // get the line that contains the webserviceprotocols setting
         preg_match('/.*webserviceprotocols.*$/m', $capturedData, $matches);
         $this->assertStringContainsString('rest', $matches[0]);
@@ -158,8 +187,9 @@ class web_services_test extends adler_testcase {
             [''],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
         $this->assertStringContainsString('soap', $CFG->webserviceprotocols);
     }
@@ -181,8 +211,9 @@ class web_services_test extends adler_testcase {
             ['soap'],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
         $this->assertStringNotContainsString('soap', $CFG->webserviceprotocols);
     }
@@ -264,15 +295,18 @@ class web_services_test extends adler_testcase {
             [],
             web_services_model::STATE_UNSET));
 
-        $play->play();
+        $changed = $play->play();
 
         // only check file content if it is excepted to be changed. Otherwise, the mock handles the check
         if ($desired_enabled !== $initally_enabled) {
+            $this->assertTrue($changed);
             if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
                 $this->assertStringContainsString('enablewebservices = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
             } else {
                 $this->assertStringNotContainsString('enablewebservices', $capturedData);
             }
+        } else {
+            $this->assertFalse($changed);
         }
     }
 
@@ -312,15 +346,18 @@ class web_services_test extends adler_testcase {
             [],
             $desired_enabled));
 
-        $play->play();
+        $changed = $play->play();
 
         // only check file content if it is excepted to be changed. Otherwise, the mock handles the check
         if ($desired_enabled !== $initally_enabled) {
+            $this->assertTrue($changed);
             if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
                 $this->assertStringContainsString(MOODLE_OFFICIAL_MOBILE_SERVICE . ' = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
             } else {
                 $this->assertStringNotContainsString(MOODLE_OFFICIAL_MOBILE_SERVICE, $capturedData);
             }
+        } else {
+            $this->assertFalse($changed);
         }
     }
 

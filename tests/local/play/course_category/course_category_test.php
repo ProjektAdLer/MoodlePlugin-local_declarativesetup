@@ -21,9 +21,29 @@ class course_category_test extends adler_testcase {
         $play = new course_category(new course_category_model(
             'testcategory',
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertTrue($category_path->exists());
+    }
+
+    public function test_course_update_no_change() {
+        $category_path = new course_category_path('testcategory');
+        $this->assertFalse($category_path->exists());
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertTrue($category_path->exists());
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+        ));
+        $changed = $play->play();
+        $this->assertFalse($changed);
     }
 
     public function test_course_category_all_properties() {
@@ -48,8 +68,9 @@ class course_category_test extends adler_testcase {
             'description'
         ));
 
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $category_path->get_moodle_category_object();
         $this->assertTrue($category_path->exists());
         $this->assertEquals('description', $moodle_category->description);
@@ -124,8 +145,9 @@ class course_category_test extends adler_testcase {
             $course_category_path,
             false
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertFalse($course_category_path->exists());
     }
 
@@ -140,8 +162,9 @@ class course_category_test extends adler_testcase {
             [],
             'new description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         $this->assertEquals('new description', $moodle_category->description);
     }
@@ -162,8 +185,9 @@ class course_category_test extends adler_testcase {
             ],
             'description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         // check user removed from cc
         $user_id = get_complete_user_data('username', $user->username)->id;
@@ -189,8 +213,9 @@ class course_category_test extends adler_testcase {
             [],
             'description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         // check user removed from cc
         $user_id = get_complete_user_data('username', $user->username)->id;
@@ -215,8 +240,9 @@ class course_category_test extends adler_testcase {
             ],
             'description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         // check user still in cc
         $user_id = get_complete_user_data('username', $user->username)->id;
@@ -250,8 +276,9 @@ class course_category_test extends adler_testcase {
             ],
             'description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         // check user has both roles
         $user_id = get_complete_user_data('username', $user->username)->id;
@@ -261,8 +288,8 @@ class course_category_test extends adler_testcase {
         $this->assertEquals(2, count($user_roles));
         $this->assertEquals($role_shortname, array_values($user_roles)[0]->shortname);
         $this->assertEquals($new_role_shortname, array_values($user_roles)[1]->shortname);
-
     }
+
     public function test_update_replace_roles() {
         list($user, $role_shortname, $course_category_path) = $this->create_test_category();
 
@@ -280,8 +307,9 @@ class course_category_test extends adler_testcase {
             ],
             'description'
         ));
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $moodle_category = $course_category_path->get_moodle_category_object();
         // check user has only new role
         $user_id = get_complete_user_data('username', $user->username)->id;

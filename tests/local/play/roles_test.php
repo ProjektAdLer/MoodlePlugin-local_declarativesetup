@@ -9,7 +9,7 @@ global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
 
 class roles_test extends adler_testcase {
-    private function create_test_role_and_verify() {
+    private function create_test_role_and_verify(): bool {
         $role = new role_model(
             'test_role',
             ['moodle/question:add' => CAP_ALLOW, 'moodle/restore:restoresection' => CAP_ALLOW],
@@ -18,7 +18,7 @@ class roles_test extends adler_testcase {
         );
 
         $play = new role($role);
-        $play->play();
+        $changed = $play->play();
 
         // check if role was created
         $role_exists = false;
@@ -31,9 +31,18 @@ class roles_test extends adler_testcase {
         $this->assertTrue($role_exists);
         $this->assertArrayHasKey('moodle/question:add', $play->get_output()['test_role']->list_of_capabilities);
         $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/question:add'], CAP_ALLOW);
+
+        return $changed;
     }
     public function test_play_create_role() {
+        $changed = $this->create_test_role_and_verify();
+        $this->assertTrue($changed);
+    }
+
+    public function test_play_update_role_no_change() {
         $this->create_test_role_and_verify();
+        $changed = $this->create_test_role_and_verify();
+        $this->assertFalse($changed);
     }
 
     public function test_play_update_role_capabilities() {
@@ -47,8 +56,9 @@ class roles_test extends adler_testcase {
         );
 
         $play = new role($role);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertArrayHasKey('moodle/restore:restoresection', $play->get_output()['test_role']->list_of_capabilities);
         $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/restore:restoresection'], CAP_PREVENT);
         $this->assertArrayHasKey('moodle/restore:restorecourse', $play->get_output()['test_role']->list_of_capabilities);
@@ -67,8 +77,9 @@ class roles_test extends adler_testcase {
         );
 
         $play = new role($role);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertContains(CONTEXT_SYSTEM, $play->get_output()['test_role']->list_of_contexts);
         $this->assertNotContains(CONTEXT_COURSECAT, $play->get_output()['test_role']->list_of_contexts);
     }
@@ -87,8 +98,9 @@ class roles_test extends adler_testcase {
         );
 
         $play = new role($role);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $this->assertEquals($play->get_output()['test_role']->shortname, 'test_role');
         $this->assertEquals($play->get_output()['test_role']->description, 'This is a test role');
         $this->assertEquals($play->get_output()['test_role']->archetype, 'manager');

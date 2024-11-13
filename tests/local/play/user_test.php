@@ -22,7 +22,21 @@ class user_test extends adler_testcase {
             ['coursecreator']);
 
         $play = new user($user);
-        $play->play();
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+    }
+
+    public function test_update_no_change() {
+        $user = new user_model(
+            'testuser',
+            'password',
+            true,
+            ['coursecreator']);
+        $play = new user($user);
+        $changed = $play->play();
+
+        $this->assertFalse($changed);
     }
 
     public function test_create_user() {
@@ -47,8 +61,9 @@ class user_test extends adler_testcase {
             'some@e.mail',
             'updated by test');
         $play = new user($user);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $existing_user = get_complete_user_data('username', 'testuser');
         $this->assertEquals('en', $existing_user->lang);
         $this->assertEquals('Hans', $existing_user->firstname);
@@ -63,8 +78,9 @@ class user_test extends adler_testcase {
             'testuser',
             'newpassword');
         $play = new user($user);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $existing_user = get_complete_user_data('username', 'testuser');
         $this->assertTrue(validate_internal_user_password($existing_user, 'newpassword'));
     }
@@ -88,8 +104,9 @@ class user_test extends adler_testcase {
             ['manager'],
             $append_roles);
         $play = new user($user);
-        $play->play();
+        $changed = $play->play();
 
+        $this->assertTrue($changed);
         $existing_user = get_complete_user_data('username', 'testuser');
         $roles = get_user_roles(context_system::instance(), $existing_user->id);
         $this->assertContains('manager', array_column($roles, 'shortname'));
@@ -117,8 +134,13 @@ class user_test extends adler_testcase {
             'password',
             false);
         $play = new user($user);
-        $play->play();
+        $changed = $play->play();
 
+        if ($username === 'testuser') {
+            $this->assertTrue($changed);
+        } else {
+            $this->assertFalse($changed);
+        }
         $existing_user = get_complete_user_data('username', $username);
         $this->assertFalse($existing_user);
     }
