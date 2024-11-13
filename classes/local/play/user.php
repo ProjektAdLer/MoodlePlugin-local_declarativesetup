@@ -152,7 +152,7 @@ class user extends base_play {
         // add roles in $this->input->roles
         foreach ($this->input->system_roles as $role_shortname) {
             $role_id = di::get(moodle_core::class)::get_role($role_shortname)->id;
-            if (!in_array($role_id, $user_roles)) {
+            if (!in_array($role_id, array_column($user_roles, 'roleid'))) {
                 role_assign($role_id, $user->id, context_system::instance()->id);
                 $state_changed = true;
             }
