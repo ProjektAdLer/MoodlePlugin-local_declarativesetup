@@ -46,7 +46,7 @@ class create_course_cat_and_assign_user_role {
      * @return void
      * @throws invalid_parameter_exception
      */
-    public function validate_required_parameters(string $username, string $role): void {
+    private function validate_required_parameters(string $username, string $role): void {
         if (empty(trim($username))) {
             cli_writeln('--username is required');
             throw new invalid_parameter_exception('username is required');

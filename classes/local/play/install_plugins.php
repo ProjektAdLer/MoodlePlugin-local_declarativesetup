@@ -58,7 +58,7 @@ class install_plugins extends base_play {
         return $state_changed;
     }
 
-    public function get_output_implementation(): array {
+    protected function get_output_implementation(): array {
         $plugins_list = [];
         foreach (plugin_manager::instance()->get_plugins() as $plugin_type => $plugins_by_type) {
             foreach ($plugins_by_type as $plugin) {
