@@ -1,10 +1,9 @@
 <?php
 
-namespace local_adlersetup\tests\local\db;
+namespace local_adlersetup\local\db;
 
 use core\di;
 use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\db\moodle_role_repository;
 use moodle_database;
 
 global $CFG;

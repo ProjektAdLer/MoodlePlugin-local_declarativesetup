@@ -8,7 +8,6 @@ use local_adlersetup\local\moodle_core;
 
 class user_model {
     /**
-     * Requires local_adler plugin to be installed, requires role "adler_manager" to be present
      * @throws invalid_parameter_exception
      */
     public function __construct(string      $username,
