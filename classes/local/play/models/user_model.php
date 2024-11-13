@@ -15,12 +15,12 @@ class user_model {
                                 string      $password,
                                 bool        $present = true,
                                 array       $system_roles = [],
-                                bool        $append_roles = false,
+                                bool        $append_roles = true,
                                 string      $langauge = 'en',
                                 string|null $firstname = null,
                                 string|null $lastname = null,
                                 string|null $email = null,
-                                string|null $description = "created by adler_setup") {
+                                string $description = "created by adler_setup") {
         if ($username !== strtolower($username) || str_contains($username, ' ')) {
             throw new invalid_parameter_exception('Username must be lowercase');
         }
