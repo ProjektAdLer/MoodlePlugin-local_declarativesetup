@@ -88,10 +88,8 @@ class course_category extends base_play {
             foreach ($role_users as $role_user) {
                 if (!in_array(
                     $role_user->username,
-                    array_map(function ($role_user) {
-                        return $role_user->username;
-                    }, $this->input->users))
-                ) {
+                    array_column($this->input->users, 'username')
+                )) {
                     $user_id = get_complete_user_data('username', $role_user->username)->id;
                     role_unassign(
                         $role_user->roleid,

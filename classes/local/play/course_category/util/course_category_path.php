@@ -62,22 +62,13 @@ class course_category_path implements Countable {
         }
 
         $current_category_id = 0;  // top level category
-        $current_category_path = new course_category_path('');  // this will be used to check if the category already exists
 
         foreach ($this->get_path() as $category_path_part) {
-            // update current category path
-            $current_category_path->append_to_path($category_path_part);
-
-            // check if category already exists
-            if ($current_category_path->exists()) {
-                $current_category_id = $current_category_path->get_category_id();
-            } else {
-                $current_category_id = core_course_category::create([
-                    'name' => (string)$category_path_part,
-                    'parent' => $current_category_id,
-                    'visible' => 1,
-                ])->id;
-            }
+            $current_category_id = core_course_category::create([
+                'name' => (string)$category_path_part,
+                'parent' => $current_category_id,
+                'visible' => 1,
+            ])->id;
         }
 
         return $current_category_id;
@@ -96,7 +87,7 @@ class course_category_path implements Countable {
      */
     public function get_category_id(): int|bool {
         $categories = core_course_category::make_categories_list();
-        return array_search((string)$this, $categories);
+        return array_search($this, $categories);
     }
 
     /**
