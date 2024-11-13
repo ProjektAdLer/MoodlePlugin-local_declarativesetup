@@ -7,7 +7,6 @@ global $CFG;
 use context_coursecat;
 use invalid_parameter_exception;
 use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\cli\create_course_cat_and_assign_user_role;
 use moodle_exception;
 use TypeError;
 
@@ -26,13 +25,13 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
                 'username' => '',
                 'role' => 'role',
                 'category_path' => 'category_path',
-                'expect_exception' => moodle_exception::class
+                'expect_exception' => invalid_parameter_exception::class
             ],
             'empty role' => [
                 'username' => 'username',
                 'role' => '',
                 'category_path' => 'category_path',
-                'expect_exception' => moodle_exception::class
+                'expect_exception' => invalid_parameter_exception::class
             ],
             'null username' => [
                 'username' => null,

@@ -35,6 +35,8 @@ class course_category_path_test extends adler_testcase {
     public function test_constructor_with_spaces() {
         $path = new course_category_path('category1 / category2');
         $this->assertEquals(2, count($path));
+        $this->assertEquals('category1', $path->get_path()[0]);
+        $this->assertEquals('category2', $path->get_path()[1]);
     }
 
     /**

@@ -77,6 +77,7 @@ class install_plugins_test extends adler_testcase {
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin was not installed');
         $this->assertEquals('0.1.0', $play_output['local_testplugin']['release'], 'Installed version is not correct');
         $plugin_version = $installed_mods['testplugin'];
+        $plugin_ugly_version_number = $play_output['local_testplugin']['version'];
 
 
         // test update
@@ -94,6 +95,23 @@ class install_plugins_test extends adler_testcase {
         $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
         $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
         $this->assertEquals('0.1.1', $play_output['local_testplugin']['release'], 'Installed version is not correct');
+        $this->assertGreaterThan($plugin_ugly_version_number, $play_output['local_testplugin']['version'], 'Version after update is not higher than before');
+
+        // test no change
+        $play = new install_plugins([new install_plugins_model(
+            'ProjektAdler/moodle-local_testplugin',
+            '0.1.1',
+            'local_testplugin'
+        )]);
+        $play->github_api_url = 'http://localhost:48531';
+        $changed = $play->play();
+        $play_output = $play->get_output();
+
+        $this->assertFalse($changed, 'Unexpected change occurred');
+        $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
+        $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
+        $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
+        $this->assertEquals('0.1.1', $play_output['local_testplugin']['release'], 'Installed version is not correct');
 
 
         // test downgrade
@@ -105,8 +123,6 @@ class install_plugins_test extends adler_testcase {
         $play->github_api_url = 'http://localhost:48531';
         $this->expectExceptionMessage('plugin downgrade is not allowed');
         $changed = $play->play();
-
-        $this->assertFalse($changed, 'Plugin was downgraded');
     }
 
     public function test_install_plugin_with_branch() {

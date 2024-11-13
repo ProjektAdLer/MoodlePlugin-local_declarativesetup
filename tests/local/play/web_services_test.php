@@ -85,6 +85,39 @@ class web_services_test extends adler_testcase {
         $this->assertStringContainsString('\'rest\'', $capturedData);
     }
 
+    public function test_disable_rest_protocol_forced_to_soft(): void {
+        global $CFG;
+        $capturedData = null;
+
+        $php_mock = Mockery::mock(php::class)->makePartial();
+        $php_mock->shouldReceive('file_put_contents')
+            ->withArgs(function ($filename, $data) use (&$capturedData) {
+                // Capture the arguments
+                $capturedData = $data;
+                return true; // Return true to indicate the arguments match
+            });
+        $php_mock
+            ->shouldReceive('file_get_contents')
+            ->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n\$CFG->webserviceprotocols = 'rest';\n");
+        $CFG->config_php_settings = ['enablewebservices' => true, 'webserviceprotocols' => 'rest'];
+        di::set(php::class, $php_mock);
+        set_config('webserviceprotocols', 'rest');
+        set_config('enablewebservices', true);
+
+        $play = new web_services(new web_services_model(
+            web_services_model::STATE_ENABLED,
+            ['rest'],
+            [''],
+            web_services_model::STATE_UNSET));
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
+        $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
+        $this->assertStringNotContainsString('\'rest\'', $capturedData);
+    }
+
     public function test_enable_rest_protocol_back_to_soft() {
         global $CFG;
         $capturedData = null;

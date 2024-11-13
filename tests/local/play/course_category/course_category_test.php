@@ -25,6 +25,25 @@ class course_category_test extends adler_testcase {
 
         $this->assertTrue($changed);
         $this->assertTrue($category_path->exists());
+        $this->assertNotEmpty($category_path->get_moodle_category_object()->description);
+    }
+
+    public function test_course_category_basic_empty_description() {
+        $category_path = new course_category_path('testcategory');
+        $this->assertFalse($category_path->exists());
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+            true,
+            true,
+            [],
+            ''
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertTrue($category_path->exists());
+        $this->assertEquals("", $category_path->get_moodle_category_object()->description);
     }
 
     public function test_course_update_no_change() {
@@ -113,7 +132,7 @@ class course_category_test extends adler_testcase {
         $play->play();
     }
 
-    private function create_test_category() {
+    private function create_test_category($description="description") {
         $user = $this->getDataGenerator()->create_user([
             'username' => 'username',
         ]);
@@ -130,7 +149,7 @@ class course_category_test extends adler_testcase {
             [
                 new role_user_model($user->username, [$role_shortname], true),
             ],
-            'description'
+            $description
         ));
 
         $play->play();
@@ -260,7 +279,8 @@ class course_category_test extends adler_testcase {
         $this->assertEquals($role_shortname, reset($user_roles)->shortname);
     }
     public function test_update_append_roles() {
-        list($user, $role_shortname, $course_category_path) = $this->create_test_category();
+        $description = "description";
+        list($user, $role_shortname, $course_category_path) = $this->create_test_category($description);
 
         $new_role_shortname = 'new_role';
         $new_role_id = $this->getDataGenerator()->create_role([
@@ -274,7 +294,7 @@ class course_category_test extends adler_testcase {
             [
                 new role_user_model($user->username, [$new_role_shortname], true),
             ],
-            'description'
+            $description
         ));
         $changed = $play->play();
 
