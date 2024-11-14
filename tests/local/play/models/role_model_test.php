@@ -17,6 +17,8 @@ class role_model_test extends adler_testcase {
             ['moodle/question:add' => CAP_ALLOW, 'moodle/restore:restoresection' => CAP_ALLOW],
             ['invalid_context'],
         );
+        $this->assertEquals('test_role', $role->shortname);
+        $this->assertEquals('test_role', $role->role_name);
     }
 
     public function provide_test_type_validation_capabilities_data() {
