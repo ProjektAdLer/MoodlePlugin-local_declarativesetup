@@ -141,7 +141,7 @@ class role extends base_play {
         set_role_contextlevels($role_id, $this->input->list_of_contexts);
     }
 
-    public function get_output_implementation(): array {
+    protected function get_output_implementation(): array {
         foreach (di::get(moodle_core::class)::get_all_roles() as $role) {
             $capabilities = [];
             foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role->id) as $capability) {
