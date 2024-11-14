@@ -131,9 +131,10 @@ class user extends base_play {
     }
 
     /**
+     * @param stdClass $user
+     * @return bool
      * @throws coding_exception
      * @throws dml_exception
-     * @throws invalid_parameter_exception
      */
     private function check_and_update_roles(stdClass $user): bool {
         $state_changed = false;

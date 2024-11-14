@@ -58,7 +58,6 @@ class web_services_test extends adler_testcase {
     }
 
     public function test_enable_rest_protocol_forced(): void {
-        global $CFG;
         $capturedData = null;
 
         $php_mock = Mockery::mock(php::class)->makePartial();

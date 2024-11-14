@@ -40,6 +40,8 @@ class user_test extends adler_testcase {
     }
 
     public function test_create_user() {
+        // it's just testing what setUp sets up
+
         $existing_user = get_complete_user_data('username', 'testuser');
         $this->assertEquals('testuser', $existing_user->username);
         $system_context = context_system::instance();

@@ -208,6 +208,9 @@ class install_plugins extends base_play {
         }
 
         upgrade_noncore(true);
+        // unsure if this is required, some code snippets set admin user before
+        // calling admin_apply_default_settings, but this could also happen for other reasons.
+        // There is currently no test covering this
         manager::set_user(get_admin());
         admin_apply_default_settings(null, false);
     }

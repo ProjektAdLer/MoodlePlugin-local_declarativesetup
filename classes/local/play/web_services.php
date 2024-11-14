@@ -94,7 +94,8 @@ class web_services extends base_play {
 
             if (in_array('webserviceprotocols', array_keys($CFG->config_php_settings))) {  // doing `in_array('webserviceprotocols', $CFG->config_php_settings)` does not work for some unknown reason. It always returns true. With strict = true it always returns false
                 $current_protocols = explode(',', $CFG->config_php_settings['webserviceprotocols']);
-                $protocol_diffs = array_diff($current_protocols, $this->input->protocols_enable_list) || array_diff($this->input->protocols_enable_list, $current_protocols);
+                $protocol_diffs = array_diff($current_protocols, $this->input->protocols_enable_list) ||
+                    array_diff($this->input->protocols_enable_list, $current_protocols);
                 if ($protocol_diffs) {
                     $this->file_content = $this->remove_setting_from_config_php('webserviceprotocols', $this->file_content);
                     $this->file_content .= "\n\$CFG->webserviceprotocols = '" . implode(',', $this->input->protocols_enable_list) . "';  // Configured through local_adlersetup\n";

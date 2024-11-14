@@ -132,7 +132,7 @@ class role extends base_play {
                 $capability,
                 $permission,
                 $role_id,
-                1,  // no idea what exactly this is for, seems like moodle allows assigning a capability only for a specific context. Could not find documentation about it, in UI it seems there is no way to use this feature. The default roles have always "1" as context id.
+                1,  // https://docs.moodle.org/405/en/Override_permissions
                 true  // overwrites existing capabilities
             );
         }
