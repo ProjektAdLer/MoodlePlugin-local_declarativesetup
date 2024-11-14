@@ -101,8 +101,9 @@ class roles_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertEquals($play->get_output()['test_role']->shortname, 'test_role');
-        $this->assertEquals($play->get_output()['test_role']->description, 'This is a test role');
-        $this->assertEquals($play->get_output()['test_role']->archetype, 'manager');
+        $this->assertEquals('test_role', $play->get_output()['test_role']->shortname);
+        $this->assertEquals('This is a test role', $play->get_output()['test_role']->description);
+        $this->assertEquals('manager', $play->get_output()['test_role']->archetype);
+        $this->assertEquals('Test Role', $play->get_output()['test_role']->role_name);
     }
 }

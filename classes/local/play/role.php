@@ -64,8 +64,8 @@ class role extends base_play {
      * @throws dml_exception
      */
     private function update_role_properties(stdClass $role): bool {
-        if ($role->shortname != $this->input->shortname || $role->description != $this->input->description || $role->archetype != $this->input->archetype) {
-            di::get(moodle_role_repository::class)->update_role($role->id, $this->input->shortname, $this->input->description, $this->input->archetype);
+        if ($role->name != $this->input->role_name || $role->description != $this->input->description || $role->archetype != $this->input->archetype) {
+            di::get(moodle_role_repository::class)->update_role($role->id, $this->input->role_name, $this->input->description, $this->input->archetype);
             return true;
         }
         return false;
@@ -149,10 +149,10 @@ class role extends base_play {
             }
 
             $roles[$role->shortname] = new role_model(
-                $role->name,
+                $role->shortname,
                 $capabilities,
                 array_map('intval', get_role_contextlevels($role->id)),
-                $role->shortname,
+                $role->name,
                 $role->description,
                 $role->archetype
             );
