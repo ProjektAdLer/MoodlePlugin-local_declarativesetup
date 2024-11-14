@@ -47,6 +47,18 @@ class user_test extends adler_testcase {
         $this->assertContains('coursecreator', array_column($roles, 'shortname'));
     }
 
+    public function test_create_user_minimal() {
+        $user = new user_model(
+            'testuser2',
+            'password');
+        $play = new user($user);
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $existing_user = get_complete_user_data('username', 'testuser2');
+        $this->assertEquals('testuser2', $existing_user->username);
+    }
+
     public function test_update_user() {
         // update test user
         $user = new user_model(
@@ -115,6 +127,23 @@ class user_test extends adler_testcase {
         } else {
             $this->assertNotContains('coursecreator', array_column($roles, 'shortname'));
         }
+    }
+
+    public function test_remove_role() {
+        // update test user
+        $user = new user_model(
+            'testuser',
+            'password',
+            true,
+            [],
+            false);
+        $play = new user($user);
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $existing_user = get_complete_user_data('username', 'testuser');
+        $roles = get_user_roles(context_system::instance(), $existing_user->id);
+        $this->assertEmpty($roles);
     }
 
     public function provide_test_delete_user_data(): array {

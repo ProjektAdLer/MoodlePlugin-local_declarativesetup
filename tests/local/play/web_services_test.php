@@ -83,6 +83,9 @@ class web_services_test extends adler_testcase {
         $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
         $this->assertStringContainsString('webserviceprotocols', $capturedData);
         $this->assertStringContainsString('\'rest\'', $capturedData);
+        // verify only one line with webserviceprotocols and config.php longer than 3 lines
+        $this->assertEquals(1, substr_count($capturedData, 'webserviceprotocols'));
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
     public function test_disable_rest_protocol_forced_to_soft(): void {
@@ -116,6 +119,8 @@ class web_services_test extends adler_testcase {
         $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
         $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
         $this->assertStringNotContainsString('\'rest\'', $capturedData);
+        // verify only one line with webserviceprotocols and config.php longer than 3 lines
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
     public function test_enable_rest_protocol_back_to_soft() {
@@ -145,9 +150,11 @@ class web_services_test extends adler_testcase {
         $this->assertTrue($changed);
         $this->assertEquals('rest', $CFG->webserviceprotocols);
         $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
+        // verify config.php longer than 3 lines
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
-    public function test_enable_second_protocol_hard() {
+    public function test_enable_second_protocol_hard_to_hard() {
         global $CFG;
         $capturedData = null;
 
@@ -173,6 +180,40 @@ class web_services_test extends adler_testcase {
         preg_match('/.*webserviceprotocols.*$/m', $capturedData, $matches);
         $this->assertStringContainsString('rest', $matches[0]);
         $this->assertStringContainsString('soap', $matches[0]);
+        // verify only one line with webserviceprotocols and config.php longer than 3 lines
+        $this->assertEquals(1, substr_count($capturedData, 'webserviceprotocols'));
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
+    }
+
+    public function test_enable_second_protocol_soft_to_hard() {
+        global $CFG;
+        $capturedData = null;
+
+        $php_mock = Mockery::mock(php::class)->makePartial();
+        di::set(php::class, $php_mock);
+        $php_mock->shouldReceive('file_put_contents')->withArgs(function ($filename, $data) use (&$capturedData) {
+            $capturedData = $data;
+            return true; // Return true to indicate the arguments match
+        });
+        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n");
+        $CFG->config_php_settings = ['enablewebservices' => true];
+
+        $play = new web_services(new web_services_model(
+            web_services_model::STATE_ENABLED,
+            ['rest', 'soap'],
+            ['*'],
+            web_services_model::STATE_UNSET));
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        // get the line that contains the webserviceprotocols setting
+        preg_match('/.*webserviceprotocols.*$/m', $capturedData, $matches);
+        $this->assertStringContainsString('rest', $matches[0]);
+        $this->assertStringContainsString('soap', $matches[0]);
+        // verify only one line with webserviceprotocols and config.php longer than 3 lines
+        $this->assertEquals(1, substr_count($capturedData, 'webserviceprotocols'));
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
     public function test_disable_second_protocol_hard() {
@@ -201,6 +242,9 @@ class web_services_test extends adler_testcase {
         preg_match('/.*webserviceprotocols.*$/m', $capturedData, $matches);
         $this->assertStringContainsString('rest', $matches[0]);
         $this->assertStringNotContainsString('soap', $matches[0]);
+        // verify only one line with webserviceprotocols and config.php longer than 3 lines
+        $this->assertEquals(1, substr_count($capturedData, 'webserviceprotocols'));
+        $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
 
@@ -295,7 +339,7 @@ class web_services_test extends adler_testcase {
     /**
      * @dataProvider provide_update_setting_data
      */
-    public function test_enable_webservices(int $initally_enabled, int $desired_enabled) {
+    public function test_switch_webservices(int $initally_enabled, int $desired_enabled) {
         global $CFG;
         $capturedData = null;
 
@@ -333,6 +377,16 @@ class web_services_test extends adler_testcase {
         // only check file content if it is excepted to be changed. Otherwise, the mock handles the check
         if ($desired_enabled !== $initally_enabled) {
             $this->assertTrue($changed);
+            // check file content to not contain more than expected number of enablewebservices. Can only test
+            // "simulated config.php" in case it was modified.
+            $this->assertEquals(
+                $desired_enabled === web_services_model::STATE_UNSET ? 0 : 1,
+                substr_count($capturedData, 'enablewebservices'),
+                'enablewebservices found more often than expected'
+            );
+            // check config.php length longer than 1 line. There is no scenario when it could have one line or less
+            // and be valid. Can only test "simulated config.php" in case it was modified.
+            $this->assertGreaterThan(1, substr_count($capturedData, "\n"), 'config.php has less than 2 lines');
             if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
                 $this->assertStringContainsString('enablewebservices = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
             } else {
@@ -384,6 +438,16 @@ class web_services_test extends adler_testcase {
         // only check file content if it is excepted to be changed. Otherwise, the mock handles the check
         if ($desired_enabled !== $initally_enabled) {
             $this->assertTrue($changed);
+            // check file content to not contain more than expected number of enablewebservices. Can only test
+            // "simulated config.php" in case it was modified.
+            $this->assertEquals(
+                $desired_enabled === web_services_model::STATE_UNSET ? 0 : 1,
+                substr_count($capturedData, MOODLE_OFFICIAL_MOBILE_SERVICE),
+                'enablewebservices found more often than expected'
+            );
+            // check config.php length longer than 1 line. There is no scenario when it could have one line or less
+            // and be valid. Can only test "simulated config.php" in case it was modified.
+            $this->assertGreaterThan(1, substr_count($capturedData, "\n"), 'config.php has less than 2 lines');
             if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
                 $this->assertStringContainsString(MOODLE_OFFICIAL_MOBILE_SERVICE . ' = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
             } else {
