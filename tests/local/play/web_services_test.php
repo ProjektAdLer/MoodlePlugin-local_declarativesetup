@@ -79,7 +79,7 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
+        $this->assertStringContainsString('enablewebservices', $capturedData);
         $this->assertStringContainsString('webserviceprotocols', $capturedData);
         $this->assertStringContainsString('\'rest\'', $capturedData);
         // verify only one line with webserviceprotocols and config.php longer than 3 lines
@@ -115,7 +115,7 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertEquals(true, $CFG->enablewebservices);  // TODO: invalid, config is not written
+        $this->assertStringContainsString('enablewebservices', $capturedData);
         $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
         $this->assertStringNotContainsString('\'rest\'', $capturedData);
         // verify only one line with webserviceprotocols and config.php longer than 3 lines
@@ -294,7 +294,7 @@ class web_services_test extends adler_testcase {
         $this->assertStringNotContainsString('soap', $CFG->webserviceprotocols);
     }
 
-    public function provide_update_setting_data() {
+    public function provide_update_setting_data(): array {
         return [
             'enable -> enable' => [
                 'initally_enabled' => web_services_model::STATE_ENABLED,
