@@ -8,6 +8,9 @@ use invalid_parameter_exception;
 use moodle_exception;
 
 class course_category_path implements Countable {
+    /**
+     * @var string[]
+     */
     private array $path;
 
     /**
@@ -30,7 +33,7 @@ class course_category_path implements Countable {
     }
 
     /**
-     * @return array Returns the path as an array of strings.
+     * @return string[] Returns the path as an array of strings.
      */
     public function get_path(): array {
         return $this->path;
@@ -65,7 +68,7 @@ class course_category_path implements Countable {
 
         foreach ($this->get_path() as $category_path_part) {
             $current_category_id = core_course_category::create([
-                'name' => (string)$category_path_part,
+                'name' => $category_path_part,
                 'parent' => $current_category_id,
                 'visible' => 1,
             ])->id;
