@@ -8,7 +8,7 @@ use local_adlersetup\local\play\models\role_model;
 global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
 
-class roles_test extends adler_testcase {
+class role_test extends adler_testcase {
     private function create_test_role_and_verify(): bool {
         $role = new role_model(
             'test_role',
@@ -54,6 +54,7 @@ class roles_test extends adler_testcase {
             'test_role',
             [],
             [CONTEXT_COURSECAT],
+            'Test Role',
         );
 
         $play = new role($role);
