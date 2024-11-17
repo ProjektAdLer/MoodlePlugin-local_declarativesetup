@@ -278,7 +278,7 @@ class course_category_test extends adler_testcase {
         $this->assertEquals(1, count($user_roles));
         $this->assertEquals($role_shortname, reset($user_roles)->shortname);
     }
-    public function test_update_append_roles() {
+    public function test_update_append_and_remove_role() {
         $description = "description";
         list($user, $role_shortname, $course_category_path) = $this->create_test_category($description);
 
@@ -308,6 +308,27 @@ class course_category_test extends adler_testcase {
         $this->assertEquals(2, count($user_roles));
         $this->assertEquals($role_shortname, array_values($user_roles)[0]->shortname);
         $this->assertEquals($new_role_shortname, array_values($user_roles)[1]->shortname);
+
+        // remove a role
+        $play = new course_category(new course_category_model(
+            $course_category_path,
+            true,
+            true,
+            [
+                new role_user_model($user->username, [$role_shortname], false),
+            ],
+            $description
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $moodle_category = $course_category_path->get_moodle_category_object();
+        // check user has only new role
+        $user_id = get_complete_user_data('username', $user->username)->id;
+        $user_roles = get_user_roles(
+            context_coursecat::instance($moodle_category->id),
+            $user_id);
+        $this->assertEquals(1, count($user_roles));
     }
 
     public function test_update_replace_roles() {

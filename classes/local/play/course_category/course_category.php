@@ -123,7 +123,7 @@ class course_category extends base_play {
             // add roles a user should have
             foreach ($desired_user_roles->roles as $role_shortname) {
                 $role_id = di::get(moodle_core::class)::get_role($role_shortname)->id;
-                if (!in_array($role_id, $user_roles)) {
+                if (!in_array($role_id, array_column($user_roles, 'roleid'))) {
                     if (!$this->is_role_assignable_to_course_category($role_id)) {
                         throw new invalid_parameter_exception('role_not_assignable_to_course_category');
                     }
