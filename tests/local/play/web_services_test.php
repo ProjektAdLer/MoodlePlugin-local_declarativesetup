@@ -383,9 +383,9 @@ class web_services_test extends adler_testcase {
                 substr_count($capturedData, 'enablewebservices'),
                 'enablewebservices found more often than expected'
             );
-            // check config.php length longer than 1 line. There is no scenario when it could have one line or less
+            // check config.php length longer than 3 lines. There is no scenario when it could have one line or less
             // and be valid. Can only test "simulated config.php" in case it was modified.
-            $this->assertGreaterThan(1, substr_count($capturedData, "\n"), 'config.php has less than 2 lines');
+            $this->assertGreaterThan(3, substr_count($capturedData, "\n"), 'config.php has less than 4 lines');
             if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
                 $this->assertStringContainsString('enablewebservices = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
             } else {
