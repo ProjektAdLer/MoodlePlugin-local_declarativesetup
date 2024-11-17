@@ -80,6 +80,25 @@ class role_test extends adler_testcase {
         $this->assertTrue($changed);
         $this->assertArrayHasKey('moodle/question:add', $play->get_output()['test_role']->list_of_capabilities);
         $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/question:add'], CAP_PREVENT);
+        $this->assertArrayHasKey('moodle/restore:restoresection', $play->get_output()['test_role']->list_of_capabilities);
+        $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/restore:restoresection'], CAP_ALLOW);
+
+        // update back (to test update with different permissions per capability)
+        $role = new role_model(
+            'test_role',
+            ['moodle/question:add' => CAP_ALLOW, 'moodle/restore:restoresection' => CAP_ALLOW],
+            [CONTEXT_COURSECAT],
+            'Test Role',
+        );
+
+        $play = new role($role);
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertArrayHasKey('moodle/question:add', $play->get_output()['test_role']->list_of_capabilities);
+        $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/question:add'], CAP_ALLOW);
+        $this->assertArrayHasKey('moodle/restore:restoresection', $play->get_output()['test_role']->list_of_capabilities);
+        $this->assertEquals($play->get_output()['test_role']->list_of_capabilities['moodle/restore:restoresection'], CAP_ALLOW);
     }
 
     public function test_play_update_role_capabilities() {
