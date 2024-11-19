@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play\exceptions;
+namespace local_adlersetup\local\exceptions;
 
 use Exception;
 use Throwable;

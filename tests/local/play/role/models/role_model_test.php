@@ -1,10 +1,9 @@
 <?php
 
-namespace local_adlersetup\local\play\models;
+namespace local_adlersetup\local\play\role\models;
 
 use invalid_parameter_exception;
 use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\models\role_model;
 
 global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');

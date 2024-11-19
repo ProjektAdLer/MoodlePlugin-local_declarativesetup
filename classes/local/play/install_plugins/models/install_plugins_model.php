@@ -1,6 +1,7 @@
 <?php
 
-namespace local_adlersetup\local\play\models;
+namespace local_adlersetup\local\play\install_plugins\models;
+
 
 class install_plugins_model {
     public function __construct(string $github_project, string $version, string $moodle_name) {

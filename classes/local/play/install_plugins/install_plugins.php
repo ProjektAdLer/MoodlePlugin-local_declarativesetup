@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\install_plugins;
 
 use coding_exception;
 use core\plugin_manager;
@@ -9,8 +9,9 @@ use core\update\api;
 use core_component;
 use core_plugin_manager;
 use ddl_exception;
-use local_adlersetup\local\play\exceptions\downgrade_exception;
-use local_adlersetup\local\play\models\install_plugins_model;
+use local_adlersetup\local\play\base_play;
+use local_adlersetup\local\play\install_plugins\exceptions\downgrade_exception;
+use local_adlersetup\local\play\install_plugins\models\install_plugins_model;
 use moodle_exception;
 use stdClass;
 

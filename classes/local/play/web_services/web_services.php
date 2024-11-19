@@ -1,11 +1,11 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\web_services;
 
 use core\di;
 use local_adlersetup\local\php;
-use local_adlersetup\local\play\models\role_model;
-use local_adlersetup\local\play\models\web_services_model;
+use local_adlersetup\local\play\base_play;
+use local_adlersetup\local\play\web_services\models\web_services_model;
 
 global $CFG;
 require_once($CFG->libdir . '/clilib.php');
@@ -19,9 +19,9 @@ class web_services extends base_play {
     private string $file_content;
 
     /**
-     * This play takes a {@link role_model} and ensures that the role exists with the specified capabilities and contexts.
+     * This play takes a {@link web_services_model} and ensures that the role exists with the specified capabilities and contexts.
      *
-     * {@link get_output} returns a list of all roles as an array of {@link role_model} objects.
+     * {@link get_output} returns a list of all roles as an array of {@link web_services_model} objects.
      *
      * @param web_services_model $input
      */

@@ -1,11 +1,11 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\web_services;
 
 use core\di;
 use local_adlersetup\lib\adler_testcase;
 use local_adlersetup\local\php;
-use local_adlersetup\local\play\models\web_services_model;
+use local_adlersetup\local\play\web_services\models\web_services_model;
 use Mockery;
 
 global $CFG;

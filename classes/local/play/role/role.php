@@ -1,13 +1,14 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\role;
 
 use coding_exception;
 use core\di;
 use dml_exception;
 use local_adlersetup\local\db\moodle_role_repository;
 use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\models\role_model;
+use local_adlersetup\local\play\base_play;
+use local_adlersetup\local\play\role\models\role_model;
 use stdClass;
 
 global $CFG;

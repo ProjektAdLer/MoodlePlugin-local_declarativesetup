@@ -1,13 +1,10 @@
 <?php
 
-namespace local_adlersetup\cli;
-
 global $CFG;
 
 use local_adlersetup\lib\adler_testcase;
 use local_adlersetup\local\cli\create_course_cat_and_assign_user_role;
-use local_adlersetup\local\play\exceptions\exit_exception;
-use Mockery;
+use local_adlersetup\local\exceptions\exit_exception;
 
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
 

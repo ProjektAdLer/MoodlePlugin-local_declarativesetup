@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play\models;
+namespace local_adlersetup\local\play\user\models;
 
 use core\di;
 use invalid_parameter_exception;

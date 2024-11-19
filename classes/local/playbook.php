@@ -6,9 +6,9 @@ use local_adlersetup\local\play\exceptions\not_implemented_exception;
 use local_adlersetup\local\play\exceptions\play_was_already_played_exception;
 use local_adlersetup\local\play\exceptions\play_was_not_played_exception;
 use local_adlersetup\local\play\install_plugins;
-use local_adlersetup\local\play\models\install_plugins_model;
-use local_adlersetup\local\play\models\role_model;
-use local_adlersetup\local\play\role;
+use local_adlersetup\local\play\install_plugins\models\install_plugins_model;
+use local_adlersetup\local\play\role\models\role_model;
+use local_adlersetup\local\play\role\role;
 use moodle_exception;
 
 class playbook {

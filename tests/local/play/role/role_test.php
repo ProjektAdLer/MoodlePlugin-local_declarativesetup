@@ -1,9 +1,9 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\role;
 
 use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\models\role_model;
+use local_adlersetup\local\play\role\models\role_model;
 
 global $CFG;
 require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');

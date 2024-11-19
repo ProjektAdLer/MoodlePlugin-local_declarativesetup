@@ -1,11 +1,11 @@
 <?php
 
-namespace local_adlersetup\local\play;
+namespace local_adlersetup\local\play\install_plugins;
 
 use core\plugin_manager;
 use ddl_exception;
 use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\models\install_plugins_model;
+use local_adlersetup\local\play\install_plugins\models\install_plugins_model;
 use Symfony\Component\Process\Process;
 
 global $CFG;
