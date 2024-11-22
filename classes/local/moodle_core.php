@@ -63,4 +63,9 @@ class moodle_core {
         }
         return false;
     }
+
+    /** alias for {@link get_string_manager()} */
+    public static function get_string_manager(...$args): object {
+        return get_string_manager(...$args);
+    }
 }
