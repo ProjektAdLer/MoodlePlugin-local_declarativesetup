@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play\web_services\models;
+namespace local_declarativesetup\local\play\web_services\models;
 
 use invalid_parameter_exception;
 
@@ -10,9 +10,13 @@ class web_services_model {
     const STATE_UNSET = -1;
 
     /**
+     * @param int $enable_webservices see {@link $enable_webservices}
+     * @param string[] $protocols_enable_list see {@link $protocols_enable_list}
+     * @param string[] $protocols_disable_list see {@link $protocols_disable_list}
+     * @param int $enable_moodle_mobile_service see {@link $enable_moodle_mobile_service}
      * @throws invalid_parameter_exception
      */
-    public function __construct(int $enable_webservices, array $protocols_enable_list, array $protocols_disable_list, int $enable_moodle_mobile_service) {
+    public function __construct(int $enable_webservices, array $protocols_enable_list, array $protocols_disable_list = [], int $enable_moodle_mobile_service = self::STATE_UNSET) {
         // validation
         foreach ($protocols_disable_list as $protocol) {
             if (in_array($protocol, $protocols_enable_list)) {

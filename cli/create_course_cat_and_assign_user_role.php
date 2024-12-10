@@ -1,7 +1,7 @@
 <?php
 
-use local_adlersetup\local\cli\create_course_cat_and_assign_user_role;
-use local_adlersetup\local\exceptions\exit_exception;
+use local_declarativesetup\local\cli\create_course_cat_and_assign_user_role;
+use local_declarativesetup\local\exceptions\exit_exception;
 
 if (!defined('CLI_SCRIPT')) {
     define('CLI_SCRIPT', true);

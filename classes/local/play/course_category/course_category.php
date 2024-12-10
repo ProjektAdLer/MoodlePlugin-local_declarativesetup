@@ -1,15 +1,15 @@
 <?php
 
-namespace local_adlersetup\local\play\course_category;
+namespace local_declarativesetup\local\play\course_category;
 
 use coding_exception;
 use context_coursecat;
 use core\di;
 use dml_exception;
 use invalid_parameter_exception;
-use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\base_play;
-use local_adlersetup\local\play\course_category\models\course_category_model;
+use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\course_category\models\course_category_model;
 use moodle_exception;
 
 global $CFG;

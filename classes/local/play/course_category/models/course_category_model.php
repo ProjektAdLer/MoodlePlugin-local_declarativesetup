@@ -1,22 +1,22 @@
 <?php
 
-namespace local_adlersetup\local\play\course_category\models;
+namespace local_declarativesetup\local\play\course_category\models;
 
-use local_adlersetup\local\play\course_category\util\course_category_path;
+use local_declarativesetup\local\play\course_category\util\course_category_path;
 
 class course_category_model {
     /**
-     * @param string $course_category_path
-     * @param bool $present
-     * @param bool $append_users
-     * @param role_user_model[] $users
-     * @param string $description
+     * @param string $course_category_path see {@link $course_category_path}
+     * @param bool $present see {@link $present}
+     * @param bool $append_users see {@link $append_users}
+     * @param role_user_model[] $users see {@link $users}
+     * @param string $description see {@link $description}, default: "created by declarativesetup"
      */
     public function __construct(string $course_category_path,
                                 bool   $present = true,
                                 bool   $append_users = true,
                                 array  $users = [],
-                                string $description = "created by adler_setup") {
+                                string $description = "created by declarativesetup") {
 
         $this->course_category_path = new course_category_path($course_category_path);
         $this->present = $present;

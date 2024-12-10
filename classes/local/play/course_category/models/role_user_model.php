@@ -1,12 +1,12 @@
 <?php
 
-namespace local_adlersetup\local\play\course_category\models;
+namespace local_declarativesetup\local\play\course_category\models;
 
 class role_user_model {
     /**
-     * @param string $username
-     * @param array $roles
-     * @param bool $append_roles
+     * @param string $username see {@link $username}
+     * @param array $roles see {@link $roles}
+     * @param bool $append_roles see {@link $append_roles}
      */
     public function __construct(string $username, array $roles, bool $append_roles = true) {
         $this->username = $username;

@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local;
+namespace local_declarativesetup\local;
 
 class php {
     public static function file_put_contents(string $filename, string $data): int|false {

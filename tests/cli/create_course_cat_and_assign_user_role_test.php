@@ -2,11 +2,11 @@
 
 global $CFG;
 
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\cli\create_course_cat_and_assign_user_role;
-use local_adlersetup\local\exceptions\exit_exception;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\cli\create_course_cat_and_assign_user_role;
+use local_declarativesetup\local\exceptions\exit_exception;
 
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class create_course_cat_and_assign_user_role_test extends adler_testcase {
     public function provide_test_call_data() {
@@ -43,7 +43,7 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
             '--category_path=' . $category_path,
         ];
 
-        require $CFG->dirroot . '/local/adlersetup/cli/create_course_cat_and_assign_user_role.php';
+        require $CFG->dirroot . '/local/declarativesetup/cli/create_course_cat_and_assign_user_role.php';
     }
 
     public function test_invalid_parameter() {
@@ -56,7 +56,7 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
 
         $this->expectException(exit_exception::class);
 
-        require $CFG->dirroot . '/local/adlersetup/cli/create_course_cat_and_assign_user_role.php';
+        require $CFG->dirroot . '/local/declarativesetup/cli/create_course_cat_and_assign_user_role.php';
     }
 
     public function test_fail_execute() {
@@ -74,6 +74,6 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
 
         $this->expectException(exit_exception::class);
 
-        require $CFG->dirroot . '/local/adlersetup/cli/create_course_cat_and_assign_user_role.php';
+        require $CFG->dirroot . '/local/declarativesetup/cli/create_course_cat_and_assign_user_role.php';
     }
 }

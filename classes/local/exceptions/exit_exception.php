@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\exceptions;
+namespace local_declarativesetup\local\exceptions;
 
 use Exception;
 use Throwable;

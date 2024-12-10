@@ -1,12 +1,12 @@
 <?php
 
-namespace local_adlersetup\local\play\user\models;
+namespace local_declarativesetup\local\play\user\models;
 
 use invalid_parameter_exception;
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class user_model_test extends adler_testcase {
     public function test_invalid_username_caps() {

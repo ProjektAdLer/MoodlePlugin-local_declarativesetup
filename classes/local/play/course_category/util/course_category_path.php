@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play\course_category\util;
+namespace local_declarativesetup\local\play\course_category\util;
 
 use core_course_category;
 use Countable;
@@ -61,7 +61,7 @@ class course_category_path implements Countable {
         }
 
         if ($this->exists()) {
-            throw new moodle_exception('category_already_exists', 'local_adler');
+            throw new moodle_exception('category_already_exists', 'local_declarativesetup');
         }
 
         $current_category_id = 0;  // top level category

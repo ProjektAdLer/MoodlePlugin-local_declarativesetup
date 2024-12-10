@@ -1,17 +1,17 @@
 <?php
 
-namespace local_adlersetup\local\play\language;
+namespace local_declarativesetup\local\play\language;
 
 use core\di;
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\language\models\language_model;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\play\language\models\language_model;
 use Mockery;
 use moodle_exception;
 use tool_langimport\controller;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class language_test extends adler_testcase {
     public function test_integration() {

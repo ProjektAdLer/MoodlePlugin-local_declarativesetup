@@ -1,12 +1,12 @@
 <?php /** @noinspection PhpIllegalPsrClassPathInspection */
 
-namespace local_adlersetup\local\play\course_category\models;
+namespace local_declarativesetup\local\play\course_category\models;
 
 global $CFG;
 
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class course_category_model_test extends adler_testcase {
     public function test_create_instance() {

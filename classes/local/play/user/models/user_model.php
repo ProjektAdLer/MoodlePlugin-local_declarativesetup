@@ -1,13 +1,23 @@
 <?php
 
-namespace local_adlersetup\local\play\user\models;
+namespace local_declarativesetup\local\play\user\models;
 
 use core\di;
 use invalid_parameter_exception;
-use local_adlersetup\local\moodle_core;
+use local_declarativesetup\local\moodle_core;
 
 class user_model {
     /**
+     * @param string $username see {@link $username}
+     * @param string $password see {@link $password}
+     * @param bool $present see {@link $present}
+     * @param array $system_roles see {@link $system_roles}
+     * @param bool $append_roles see {@link $append_roles}
+     * @param string $langauge see {@link $langauge}
+     * @param string|null $firstname see {@link $firstname}
+     * @param string|null $lastname see {@link $lastname}
+     * @param string|null $email see {@link $email}
+     * @param string $description see {@link $description}
      * @throws invalid_parameter_exception
      */
     public function __construct(string      $username,
@@ -19,7 +29,7 @@ class user_model {
                                 string|null $firstname = null,
                                 string|null $lastname = null,
                                 string|null $email = null,
-                                string $description = "created by adler_setup") {
+                                string $description = "created by declarative setup") {
         if ($username !== strtolower($username) || str_contains($username, ' ')) {
             throw new invalid_parameter_exception('Username must be lowercase');
         }

@@ -1,24 +1,48 @@
 <?php
 
-namespace local_adlersetup\local\play\web_services;
+namespace local_declarativesetup\local\play\web_services;
 
 use core\di;
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\php;
-use local_adlersetup\local\play\web_services\models\web_services_model;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\php;
+use local_declarativesetup\local\play\web_services\models\web_services_model;
 use Mockery;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class web_services_test extends adler_testcase {
-    public function test_enable_rest_protocol(): void {
-        global $CFG;
+    private function get_sample_config_php(string $additional_line = ''): string {
+        $config_php = <<<'EOD'
+<?php  // Moodle configuration file
+unset($CFG);
+global $CFG;
+$CFG = new stdClass();
+$CFG->dbtype    = 'mariadb';
+$CFG->dblibrary = 'native';
+$CFG->dbhost    = '127.0.0.1';
+$CFG->dbname    = 'bitnami_moodle';
+$CFG->dbuser    = 'bitnami_moodle';
+$CFG->dbpass    = 'c';
+$CFG->prefix    = 'mdl_';
+$CFG->dboptions = array (
+  'dbpersist' => 0,
+  'dbport' => 3312,
+  'dbsocket' => '',
+  'dbcollation' => 'utf8mb4_unicode_ci',
+);
+EOD;
+        return $config_php . "\n" . $additional_line . "\n" . "require_once(__DIR__ . '/lib/setup.php'); // Do not edit";
+    }
 
+    public function test_enable_rest_protocol(): void {
         $php_mock = Mockery::mock(php::class)->makePartial();
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;');
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
         $php_mock->shouldNotReceive('file_put_contents');
         di::set(php::class, $php_mock);
-        $CFG->config_php_settings = ['enablewebservices' => true];
         set_config('webserviceprotocols', '');
 
         $play = new web_services(new web_services_model(
@@ -30,18 +54,18 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertEquals(true, $CFG->enablewebservices);
-        $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
+        $this->assertStringContainsString('rest', get_config('', 'webserviceprotocols'));
     }
 
 
     public function test_enable_rest_protocol_already_enabled(): void {
-        global $CFG;
-
         $php_mock = Mockery::mock(php::class)->makePartial();
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;');
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
         $php_mock->shouldNotReceive('file_put_contents');
         di::set(php::class, $php_mock);
-        $CFG->config_php_settings = ['enablewebservices' => true];
         set_config('webserviceprotocols', 'rest');
 
         $play = new web_services(new web_services_model(
@@ -53,12 +77,11 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertFalse($changed);
-        $this->assertEquals(true, $CFG->enablewebservices);
-        $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
+        $this->assertStringContainsString('rest', get_config('', 'webserviceprotocols'));
     }
 
     public function test_enable_rest_protocol_forced(): void {
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php();
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         $php_mock->shouldReceive('file_put_contents')
@@ -67,7 +90,9 @@ class web_services_test extends adler_testcase {
                 $capturedData = $data;
                 return true; // Return true to indicate the arguments match
             });
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php());
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
         di::set(php::class, $php_mock);
 
         $play = new web_services(new web_services_model(
@@ -88,8 +113,7 @@ class web_services_test extends adler_testcase {
     }
 
     public function test_disable_rest_protocol_forced_to_soft(): void {
-        global $CFG;
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;' . "\n" . '$CFG->webserviceprotocols = \'rest\';');
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         $php_mock->shouldReceive('file_put_contents')
@@ -100,8 +124,9 @@ class web_services_test extends adler_testcase {
             });
         $php_mock
             ->shouldReceive('file_get_contents')
-            ->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n\$CFG->webserviceprotocols = 'rest';\n");
-        $CFG->config_php_settings = ['enablewebservices' => true, 'webserviceprotocols' => 'rest'];
+            ->andReturnUsing(function () use (&$capturedData) {
+                return $capturedData;
+            });
         di::set(php::class, $php_mock);
         set_config('webserviceprotocols', 'rest');
         set_config('enablewebservices', true);
@@ -123,8 +148,7 @@ class web_services_test extends adler_testcase {
     }
 
     public function test_enable_rest_protocol_back_to_soft() {
-        global $CFG;
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php('$CFG->webserviceprotocols = \'rest\';');
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         $php_mock->shouldReceive('file_put_contents')
@@ -133,10 +157,10 @@ class web_services_test extends adler_testcase {
                 $capturedData = $data;
                 return true; // Return true to indicate the arguments match
             });
-        $example_config_php = $this->get_sample_config_php() . "\n\$CFG->webserviceprotocols = rest;\n";
-        $php_mock->shouldReceive('file_get_contents')->andReturn($example_config_php);
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
         di::set(php::class, $php_mock);
-        $CFG->config_php_settings = ['webserviceprotocols' => 'rest'];
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_ENABLED,
@@ -147,15 +171,14 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertEquals('rest', $CFG->webserviceprotocols);
+        $this->assertEquals('rest', get_config('', 'webserviceprotocols'));
         $this->assertStringNotContainsString('webserviceprotocols', $capturedData);
         // verify config.php longer than 3 lines
         $this->assertGreaterThan(3, substr_count($capturedData, "\n"));
     }
 
     public function test_enable_second_protocol_hard_to_hard() {
-        global $CFG;
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;' . "\n" . '$CFG->webserviceprotocols = \'rest\';');
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
@@ -163,8 +186,9 @@ class web_services_test extends adler_testcase {
             $capturedData = $data;
             return true; // Return true to indicate the arguments match
         });
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n\$CFG->webserviceprotocols = 'rest';\n");
-        $CFG->config_php_settings = ['enablewebservices' => true, 'webserviceprotocols' => 'rest'];
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_ENABLED,
@@ -185,8 +209,7 @@ class web_services_test extends adler_testcase {
     }
 
     public function test_enable_second_protocol_soft_to_hard() {
-        global $CFG;
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;');
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
@@ -194,8 +217,9 @@ class web_services_test extends adler_testcase {
             $capturedData = $data;
             return true; // Return true to indicate the arguments match
         });
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n");
-        $CFG->config_php_settings = ['enablewebservices' => true];
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_ENABLED,
@@ -216,8 +240,7 @@ class web_services_test extends adler_testcase {
     }
 
     public function test_disable_second_protocol_hard() {
-        global $CFG;
-        $capturedData = null;
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;' . "\n" . '$CFG->webserviceprotocols = \'rest,soap\';');
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
@@ -225,8 +248,9 @@ class web_services_test extends adler_testcase {
             $capturedData = $data;
             return true; // Return true to indicate the arguments match
         });
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php() . "\n\$CFG->enablewebservices = true;\n\$CFG->webserviceprotocols = 'rest,soap';\n");
-        $CFG->config_php_settings = ['enablewebservices' => true, 'webserviceprotocols' => 'rest,soap'];
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_ENABLED,
@@ -248,13 +272,13 @@ class web_services_test extends adler_testcase {
 
 
     public function test_enable_second_protocol_soft() {
-        global $CFG;
-
         $php_mock = Mockery::mock(php::class)->makePartial();
-        di::set(php::class, $php_mock);
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;');
         $php_mock->shouldNotReceive('file_put_contents');
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php());
-        $CFG->config_php_settings = ['enablewebservices' => true];
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        di::set(php::class, $php_mock);
         set_config('webserviceprotocols', 'rest');
 
         $play = new web_services(new web_services_model(
@@ -266,19 +290,19 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
-        $this->assertStringContainsString('soap', $CFG->webserviceprotocols);
+        $this->assertStringContainsString('rest', get_config('', 'webserviceprotocols'));
+        $this->assertStringContainsString('soap', get_config('', 'webserviceprotocols'));
     }
 
 
     public function test_disable_second_protocol_soft() {
-        global $CFG;
-
         $php_mock = Mockery::mock(php::class)->makePartial();
-        di::set(php::class, $php_mock);
+        $capturedData = $this->get_sample_config_php('$CFG->enablewebservices = true;');
         $php_mock->shouldNotReceive('file_put_contents');
-        $php_mock->shouldReceive('file_get_contents')->andReturn($this->get_sample_config_php());
-        $CFG->config_php_settings = ['enablewebservices' => true];
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        di::set(php::class, $php_mock);
         set_config('webserviceprotocols', 'rest,soap');
 
         $play = new web_services(new web_services_model(
@@ -290,8 +314,8 @@ class web_services_test extends adler_testcase {
         $changed = $play->play();
 
         $this->assertTrue($changed);
-        $this->assertStringContainsString('rest', $CFG->webserviceprotocols);
-        $this->assertStringNotContainsString('soap', $CFG->webserviceprotocols);
+        $this->assertStringContainsString('rest', get_config('', 'webserviceprotocols'));
+        $this->assertStringNotContainsString('soap', get_config('', 'webserviceprotocols'));
     }
 
     public function provide_update_setting_data(): array {
@@ -339,8 +363,11 @@ class web_services_test extends adler_testcase {
      * @dataProvider provide_update_setting_data
      */
     public function test_switch_webservices(int $initally_enabled, int $desired_enabled) {
-        global $CFG;
-        $capturedData = null;
+        if (in_array($initally_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
+            $capturedData = $this->get_sample_config_php("\$CFG->enablewebservices = " . ($initally_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false') . ";");
+        } else {
+            $capturedData = $this->get_sample_config_php();
+        }
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
@@ -355,15 +382,9 @@ class web_services_test extends adler_testcase {
         } else {
             $php_mock->shouldNotReceive('file_put_contents');
         }
-        // configure file read access and moodle CFG object
-        if (in_array($initally_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
-            $example_config_php = $this->get_sample_config_php() . "\n\$CFG->enablewebservices = " . ($initally_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false') . ";\n";
-            $CFG->config_php_settings = ['enablewebservices' => $initally_enabled === web_services_model::STATE_ENABLED];
-        } else {
-            $example_config_php = $this->get_sample_config_php();
-            $CFG->config_php_settings = [];
-        }
-        $php_mock->shouldReceive('file_get_contents')->andReturn($example_config_php);
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
 
         $play = new web_services(new web_services_model(
             $desired_enabled,
@@ -400,8 +421,11 @@ class web_services_test extends adler_testcase {
      * @dataProvider provide_update_setting_data
      */
     public function test_enable_mobile_service(int $initally_enabled, int $desired_enabled) {
-        global $CFG;
-        $capturedData = null;
+        if (in_array($initally_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
+            $capturedData = $this->get_sample_config_php("\$CFG->" . MOODLE_OFFICIAL_MOBILE_SERVICE . " = " . ($initally_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false') . ";");
+        } else {
+            $capturedData = $this->get_sample_config_php();
+        }
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
@@ -416,15 +440,9 @@ class web_services_test extends adler_testcase {
         } else {
             $php_mock->shouldNotReceive('file_put_contents');
         }
-        // configure file read access and moodle CFG object
-        if (in_array($initally_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
-            $example_config_php = $this->get_sample_config_php() . "\n\$CFG->" . MOODLE_OFFICIAL_MOBILE_SERVICE . " = " . ($initally_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false') . ";\n";
-            $CFG->config_php_settings = [MOODLE_OFFICIAL_MOBILE_SERVICE => $initally_enabled === web_services_model::STATE_ENABLED];
-        } else {
-            $example_config_php = $this->get_sample_config_php();
-            $CFG->config_php_settings = [];
-        }
-        $php_mock->shouldReceive('file_get_contents')->andReturn($example_config_php);
+        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
 
         $play = new web_services(new web_services_model(
             web_services_model::STATE_UNSET,
@@ -455,30 +473,5 @@ class web_services_test extends adler_testcase {
         } else {
             $this->assertFalse($changed);
         }
-    }
-
-    private function get_sample_config_php(): string {
-        return <<<'EOD'
-<?php  // Moodle configuration file
-
-unset($CFG);
-global $CFG;
-$CFG = new stdClass();
-
-$CFG->dbtype    = 'mariadb';
-$CFG->dblibrary = 'native';
-$CFG->dbhost    = '127.0.0.1';
-$CFG->dbname    = 'bitnami_moodle';
-$CFG->dbuser    = 'bitnami_moodle';
-$CFG->dbpass    = 'c';
-$CFG->prefix    = 'mdl_';
-$CFG->dboptions = array (
-  'dbpersist' => 0,
-  'dbport' => 3312,
-  'dbsocket' => '',
-  'dbcollation' => 'utf8mb4_unicode_ci',
-);
-require_once(__DIR__ . '/lib/setup.php'); // Do not edit
-EOD;
     }
 }

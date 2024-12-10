@@ -1,15 +1,15 @@
 <?php
 
-namespace local_adlersetup\local\play\install_plugins;
+namespace local_declarativesetup\local\play\install_plugins;
 
 use core\plugin_manager;
 use ddl_exception;
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\install_plugins\models\install_plugins_model;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\play\install_plugins\models\install_plugins_model;
 use Symfony\Component\Process\Process;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class install_plugins_test extends adler_testcase {
     private static Process $webserver_process;
@@ -18,7 +18,7 @@ class install_plugins_test extends adler_testcase {
         global $CFG;
         parent::setUpBeforeClass();
 
-        self::$webserver_process = new Process(["php", "-S", "localhost:48531", $CFG->dirroot . "/local/adlersetup/tests/resources/install_plugins_github_mock_server/router.php"]);
+        self::$webserver_process = new Process(["php", "-S", "localhost:48531", $CFG->dirroot . "/local/declarativesetup/tests/resources/install_plugins_github_mock_server/router.php"]);
         self::$webserver_process->start(function ($type, $buffer) {
             if (Process::ERR === $type) {
                 echo 'ERR > ' . $buffer;
@@ -63,9 +63,9 @@ class install_plugins_test extends adler_testcase {
 
     public function test_install_and_update_plugin() {
         $play = new install_plugins([new install_plugins_model(
-            'ProjektAdler/moodle-local_testplugin',
             '0.1.0',
-            'local_testplugin'
+            'local_testplugin',
+            'ProjektAdler/moodle-local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $changed = $play->play();
@@ -82,9 +82,9 @@ class install_plugins_test extends adler_testcase {
 
         // test update
         $play = new install_plugins([new install_plugins_model(
-            'ProjektAdler/moodle-local_testplugin',
             '0.1.1',
-            'local_testplugin'
+            'local_testplugin',
+            'ProjektAdler/moodle-local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $changed = $play->play();
@@ -99,9 +99,9 @@ class install_plugins_test extends adler_testcase {
 
         // test no change
         $play = new install_plugins([new install_plugins_model(
-            'ProjektAdler/moodle-local_testplugin',
             '0.1.1',
-            'local_testplugin'
+            'local_testplugin',
+            'ProjektAdler/moodle-local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $changed = $play->play();
@@ -116,9 +116,9 @@ class install_plugins_test extends adler_testcase {
 
         // test downgrade
         $play = new install_plugins([new install_plugins_model(
-            'ProjektAdler/moodle-local_testplugin',
             '0.1.0',
-            'local_testplugin'
+            'local_testplugin',
+            'ProjektAdler/moodle-local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $this->expectExceptionMessage('plugin downgrade is not allowed');
@@ -127,9 +127,9 @@ class install_plugins_test extends adler_testcase {
 
     public function test_install_plugin_with_branch() {
         $play = new install_plugins([new install_plugins_model(
-            'ProjektAdler/moodle-local_testplugin',
             'main',
-            'local_testplugin'
+            'local_testplugin',
+            'ProjektAdler/moodle-local_testplugin'
         )]);
         $play->github_api_url = 'http://localhost:48531';
 

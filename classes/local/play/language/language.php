@@ -1,11 +1,11 @@
 <?php
 
-namespace local_adlersetup\local\play\language;
+namespace local_declarativesetup\local\play\language;
 
 use core\di;
-use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\base_play;
-use local_adlersetup\local\play\language\models\language_model;
+use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\language\models\language_model;
 use moodle_exception;
 use tool_langimport\controller;
 
@@ -15,6 +15,8 @@ use tool_langimport\controller;
 class language extends base_play {
     /**
      * This play takes a list of {@link language_model} and ensures that the specified languages are in the desired state.
+     * Note: Most languages require a system locale to be installed. This play does not install system locales and will
+     * fail if the required system locale is not installed.
      *
      * {@link get_output} returns a list of all active language keys as string[].
      *
@@ -26,7 +28,7 @@ class language extends base_play {
         $language_codes = [];
         foreach ($languages as $language) {
             if (in_array($language->language_code, $language_codes)) {
-                throw new moodle_exception("Language code \"" . $language->language_code . "\" is not unique.", 'local_adlersetup');
+                throw new moodle_exception("Language code \"" . $language->language_code . "\" is not unique.", 'local_declarativesetup');
             }
             $language_codes[] = $language->language_code;
         }
@@ -77,7 +79,7 @@ class language extends base_play {
     private function install_language_pack(string $language_code): void {
         $result = di::get(controller::class)->install_languagepacks($language_code);  // returns count of installed languages
         if ($result !== 1) {
-            throw new moodle_exception("Language \"" . $language_code . "\" was not installed. The reason is unknown due to moodle limitations. Check installed system locales (locales -a).", 'local_adlersetup');
+            throw new moodle_exception("Language \"" . $language_code . "\" was not installed. The reason is unknown due to moodle limitations. Check installed system locales (locales -a).", 'local_declarativesetup');
         }
     }
 
@@ -86,7 +88,7 @@ class language extends base_play {
      */
     private function uninstall_language_pack(string $language_code): void {
         if (!di::get(controller::class)->uninstall_language($language_code)) {
-            throw new moodle_exception("Failed to uninstall language pack \"" . $language_code . "\".", 'local_adlersetup');
+            throw new moodle_exception("Failed to uninstall language pack \"" . $language_code . "\".", 'local_declarativesetup');
         }
     }
 

@@ -1,10 +1,12 @@
 <?php
 
-namespace local_adlersetup\local;
+namespace local_declarativesetup\local;
 
 use coding_exception;
 use context_coursecat;
 use core\context;
+use core\plugin_manager;
+use core_plugin_manager;
 use stdClass;
 
 /**
@@ -67,5 +69,20 @@ class moodle_core {
     /** alias for {@link get_string_manager()} */
     public static function get_string_manager(...$args): object {
         return get_string_manager(...$args);
+    }
+
+    /** alias for {@link set_config()} */
+    public static function set_config(...$args): bool {
+        return set_config(...$args);
+    }
+
+    /** alias for {@link unset_config()} */
+    public static function unset_config(...$args): bool {
+        return unset_config(...$args);
+    }
+
+    /** alias for {@link core_plugin_manager::instance()} */
+    public static function core_plugin_manager_instance(...$args): plugin_manager {
+        return core_plugin_manager::instance(...$args);
     }
 }

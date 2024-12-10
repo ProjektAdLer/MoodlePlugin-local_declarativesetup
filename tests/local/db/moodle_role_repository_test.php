@@ -1,13 +1,13 @@
 <?php
 
-namespace local_adlersetup\local\db;
+namespace local_declarativesetup\local\db;
 
 use core\di;
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 use moodle_database;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class moodle_role_repository_test extends adler_testcase {
     public function test_get_capabilities_of_role(): void {

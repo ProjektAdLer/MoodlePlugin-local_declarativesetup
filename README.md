@@ -1,21 +1,11 @@
-# AdLer setup #
+# Declarative setup #
 
 TODO Describe the plugin shortly here.
 
 TODO Provide more detailed description here.
 
-# Requirements
-- Maintenance mode should be enabled
+# Requirements (TODO)
 - Allow providing GitHub authentication
-
-
-
-- Language pack
-  - input: list of language packs with state (installed, not installed)
-  - desired state: equal to input
-    - if language pack state does not match desired state, update it
-  - output: list of all language packs with state (installed, not installed)
-
 
 ## Installing via uploaded ZIP file ##
 
@@ -29,7 +19,7 @@ TODO Provide more detailed description here.
 
 The plugin can be also installed by putting the contents of this directory to
 
-    {your/moodle/dirroot}/local/adlersetup
+    {your/moodle/dirroot}/local/declarativesetup
 
 Afterwards, log in to your Moodle site as an admin and go to _Site administration >
 Notifications_ to complete the installation.

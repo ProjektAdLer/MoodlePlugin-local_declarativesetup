@@ -1,14 +1,15 @@
 <?php
 
 
-namespace local_adlersetup\local\play;
+namespace local_declarativesetup\local\play;
 
-use local_adlersetup\local\play\exceptions\not_implemented_exception;
-use local_adlersetup\local\play\exceptions\play_was_already_played_exception;
-use local_adlersetup\local\play\exceptions\play_was_not_played_exception;
+use local_declarativesetup\local\play\exceptions\not_implemented_exception;
+use local_declarativesetup\local\play\exceptions\play_was_already_played_exception;
+use local_declarativesetup\local\play\exceptions\play_was_not_played_exception;
 use stdClass;
 
 abstract class base_play {
+    // TODO: implement logging. like: what is the desired state, did something change?
     protected object|array $input;
     protected bool $played = false;
     protected bool $state_changed = false;
@@ -27,8 +28,7 @@ abstract class base_play {
             throw new play_was_already_played_exception();
         }
         $this->played = true;
-        $result = $this->play_implementation();
-        $this->state_changed = $result;
+        $this->state_changed = $this->play_implementation();
         return $this->state_changed;
     }
 

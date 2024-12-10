@@ -1,0 +1,7 @@
+{
+  "name": "projekt-adler/local_declarativesetup",
+  "description": "Configures moodle for use with AdLer",
+  "require-dev": {
+    "mockery/mockery": "^1.6.12"
+  }
+}

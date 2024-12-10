@@ -15,42 +15,43 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * CLI script for local_adlersetup.
+ * CLI script for local_declarativesetup.
  *
- * @package     local_adlersetup
+ * @package     local_declarativesetup
  * @subpackage  cli
  * @copyright   2024 Markus Heck (Projekt Adler) <markus.heck@hs-kempten.de>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_adlersetup\local\playbook;
+use core\di;
+use local_declarativesetup\local\exceptions\exit_exception;
 
-define('CLI_SCRIPT', true);
+if (!defined('CLI_SCRIPT')) { // required this way for tests
+    define('CLI_SCRIPT', true);
+}
 
-require(__DIR__.'/../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 global $CFG;
-require_once($CFG->libdir.'/clilib.php');
+require_once($CFG->libdir . '/clilib.php');
 
 // Get the cli options.
 list($options, $unrecognized) = cli_get_params(array(
     'help' => false,
-    'install-plugins' => false, // Add the new parameter here
+    'playbook' => false, // Add the new parameter here
 ),
-array(
-    'h' => 'help',
-    'i' => 'install-plugins', // Add a short option for the new parameter
-));
+    array(
+        'h' => 'help',
+        'p' => 'playbook', // Add a short option for the new parameter
+    ));
 
 $help =
-"
-Help message for local_adlersetup cli script.
-
+    "
 Options:
---install-plugins (-i)  Install plugins.
+--playbook (-p)         Specify the playbook (subplugin name) to run.
+--help (-h)             Display this help message.
 
-Please include a list of options and associated actions.
-
-Please include an example of usage.
+Example of usage:
+php run_playbook.php --playbook=myplaybook
 ";
 
 if ($unrecognized) {
@@ -63,5 +64,14 @@ if ($options['help']) {
     die();
 }
 
-// Conditionally pass true or false to the playbook constructor
-$playbook = new playbook($options['install-plugins']);
+$playbooks = di::get(core_component::class)::get_plugin_list_with_class('playbook', 'playbook', 'classes/playbook.php');
+$subplugin_name = "playbook_" . $options['playbook'];
+if (array_key_exists($subplugin_name, $playbooks)) {
+    $playbook = new $playbooks[$subplugin_name]();
+} else {
+    cli_writeln(get_string('error_playbooknotfound', 'local_declarativesetup', $options['playbook']));
+    throw new exit_exception(1);
+}
+new $playbooks[$subplugin_name]();
+
+echo "done\n";

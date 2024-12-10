@@ -1,14 +1,14 @@
 <?php
 
-namespace local_adlersetup\local\play\role;
+namespace local_declarativesetup\local\play\role;
 
 use coding_exception;
 use core\di;
 use dml_exception;
-use local_adlersetup\local\db\moodle_role_repository;
-use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\base_play;
-use local_adlersetup\local\play\role\models\role_model;
+use local_declarativesetup\local\db\moodle_role_repository;
+use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\role\models\role_model;
 use stdClass;
 
 global $CFG;
@@ -77,11 +77,13 @@ class role extends base_play {
      * @return bool True if state changed, false otherwise
      */
     private function update_role_contexts(int $role_id): bool {
-        $existing_context_levels = get_role_contextlevels($role_id);
-        $contexts_diff = array_diff($existing_context_levels, $this->input->list_of_contexts) || array_diff($this->input->list_of_contexts, $existing_context_levels);
-        if ($contexts_diff) {
-            set_role_contextlevels($role_id, $this->input->list_of_contexts);
-            return true;
+        if ($this->input->list_of_contexts !== null) {
+            $existing_context_levels = get_role_contextlevels($role_id);
+            $contexts_diff = array_diff($existing_context_levels, $this->input->list_of_contexts) || array_diff($this->input->list_of_contexts, $existing_context_levels);
+            if ($contexts_diff) {
+                set_role_contextlevels($role_id, $this->input->list_of_contexts);
+                return true;
+            }
         }
 
         return false;
@@ -95,11 +97,13 @@ class role extends base_play {
     private function update_role_capabilities(int $role_id): bool {
         $state_changed = false;
         // compare existing role against desired role and remove capabilities that are not in the desired capabilities
-        foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role_id) as $capability) {
-            if (!array_key_exists($capability->capability, $this->input->list_of_capabilities)) {
-                di::get(moodle_core::class)::unassign_capability($capability->capability, $role_id);
-                $state_changed = true;
-                cli_writeln("Unassigned capability {$capability->capability} from role {$this->input->role_name}");
+        if ($this->input->replace_capabilities) {
+            foreach (di::get(moodle_role_repository::class)->get_capabilities_of_role($role_id) as $capability) {
+                if (!array_key_exists($capability->capability, $this->input->list_of_capabilities)) {
+                    di::get(moodle_core::class)::unassign_capability($capability->capability, $role_id);
+                    $state_changed = true;
+                    cli_writeln("Unassigned capability {$capability->capability} from role {$this->input->role_name}");
+                }
             }
         }
 
@@ -153,6 +157,7 @@ class role extends base_play {
                 $role->shortname,
                 $capabilities,
                 array_map('intval', get_role_contextlevels($role->id)),
+                false,
                 $role->name,
                 $role->description,
                 $role->archetype

@@ -1,17 +1,17 @@
 <?php /** @noinspection PhpIllegalPsrClassPathInspection */
 
-namespace local_adlersetup\local\play\course_category;
+namespace local_declarativesetup\local\play\course_category;
 
 global $CFG;
 
 use context_coursecat;
 use invalid_parameter_exception;
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\course_category\models\course_category_model;
-use local_adlersetup\local\play\course_category\models\role_user_model;
-use local_adlersetup\local\play\course_category\util\course_category_path;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\play\course_category\models\course_category_model;
+use local_declarativesetup\local\play\course_category\models\role_user_model;
+use local_declarativesetup\local\play\course_category\util\course_category_path;
 
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class course_category_test extends adler_testcase {
     public function test_course_category_basic() {

@@ -17,7 +17,7 @@
 /**
  * Plugin strings are defined here.
  *
- * @package     local_adlersetup
+ * @package     local_declarativesetup
  * @category    string
  * @copyright   2024 Markus Heck (Projekt Adler) <markus.heck@hs-kempten.de>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,4 +25,4 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'AdLer setup';
+$string['pluginname'] = 'Example playbook';

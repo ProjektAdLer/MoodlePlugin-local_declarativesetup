@@ -1,14 +1,14 @@
 <?php
 
-namespace local_adlersetup\local\play\user;
+namespace local_declarativesetup\local\play\user;
 
 use coding_exception;
 use context_system;
 use core\di;
 use dml_exception;
-use local_adlersetup\local\moodle_core;
-use local_adlersetup\local\play\base_play;
-use local_adlersetup\local\play\user\models\user_model;
+use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\user\models\user_model;
 use moodle_exception;
 use stdClass;
 

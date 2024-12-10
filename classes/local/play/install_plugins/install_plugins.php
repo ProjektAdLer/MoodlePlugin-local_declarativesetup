@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\play\install_plugins;
+namespace local_declarativesetup\local\play\install_plugins;
 
 use coding_exception;
 use core\plugin_manager;
@@ -9,9 +9,9 @@ use core\update\api;
 use core_component;
 use core_plugin_manager;
 use ddl_exception;
-use local_adlersetup\local\play\base_play;
-use local_adlersetup\local\play\install_plugins\exceptions\downgrade_exception;
-use local_adlersetup\local\play\install_plugins\models\install_plugins_model;
+use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\install_plugins\exceptions\downgrade_exception;
+use local_declarativesetup\local\play\install_plugins\models\install_plugins_model;
 use moodle_exception;
 use stdClass;
 
@@ -30,7 +30,17 @@ class install_plugins extends base_play {
     public string $github_api_url = "https://api.github.com";
 
     /**
-     * This play takes a list of {@link install_plugins_model} and ensure that these plugins in the specified version are installed.
+     * This play takes a list of {@link install_plugins_model} and ensure that these plugins in the specified version
+     * are installed.
+     * Supports multiple sources:
+     * - GitHub: A release with the version number must exist in the GitHub repository and
+     *   a assets with the name "moodle-<plugin_name>-<version>.zip" and "moodle-<plugin_name>-<version>.zip"
+     *   (<md5 hash>  <filename>) must be attached to the release.
+     * - package registry: A web endpoint providing a public accessible endpoint with a list of folders matching the
+     *   moodle plugin name (e.g. local_test) and below these folders a list of files <version number>.zip and
+     *   <version number>.zip.md5. The full url for a package looks like that:
+     *   <url of repo>/<moodle plugin name>/<version>.<zip|zip.md5>
+     *   (e.g. https://packages.projekt-adler.eu/packages/moodle/local_declarativesetup/0.1.0.zip)
      *
      * {@link get_output} returns a list of all installed plugins: [<plugin_name> => ['release' => <version>, 'version' => <version>]]
      *
@@ -134,33 +144,45 @@ class install_plugins extends base_play {
     }
 
     /**
-     * Downloads the md5 hash file for the zip and returns the file content
+     * Downloads the md5 hash file for the zip and returns the file content.
      *
      * @throws moodle_exception
      */
     private function get_plugin_zip_md5_hash(stdClass $github_release_info, install_plugins_model $plugin): string {
-        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
-        foreach ($github_release_info->assets as $asset) {
-            if ($asset->name === $asset_name) {
-                $md5sum_file = file_get_contents($asset->url);
-                return explode(' ', $md5sum_file)[0];
+        if ($plugin->package_repo !== null) {
+            $md5_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5";
+            $md5sum_file = file_get_contents($md5_url);
+            return explode(' ', $md5sum_file)[0];
+        } else {
+            $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
+            foreach ($github_release_info->assets as $asset) {
+                if ($asset->name === $asset_name) {
+                    $md5_url = $asset->url;
+                    $md5sum_file = file_get_contents($md5_url);
+                    return explode(' ', $md5sum_file)[0];
+                }
             }
+            throw new moodle_exception('MD5 hash file not found');
         }
-        throw new moodle_exception('md5 hash file not found');
     }
 
     /**
      * @throws moodle_exception
      */
     private function get_plugin_zip_download_url(stdClass $github_release_info, install_plugins_model $plugin): string {
+        if ($plugin->package_repo !== null) {
+            return "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
+        }
+
         $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip";
         foreach ($github_release_info->assets as $asset) {
             if ($asset->name === $asset_name) {
                 return $asset->url;
             }
         }
-        throw new moodle_exception('zip file not found');
+        throw new moodle_exception('Zip file not found');
     }
+
 
     /**
      * @throws downgrade_exception If a plugin downgrade is attempted

@@ -1,16 +1,16 @@
 <?php
 
-namespace local_adlersetup\local\cli;
+namespace local_declarativesetup\local\cli;
 
 global $CFG;
 
 use context_coursecat;
 use invalid_parameter_exception;
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 use moodle_exception;
 use TypeError;
 
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class create_course_cat_and_assign_user_role_test extends adler_testcase {
     public function test_create_instance() {

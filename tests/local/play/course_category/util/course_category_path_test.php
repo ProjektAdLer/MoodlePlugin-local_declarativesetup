@@ -1,16 +1,16 @@
 <?php /** @noinspection PhpIllegalPsrClassPathInspection */
 
-namespace local_adlersetup\local\play\course_category\util;
+namespace local_declarativesetup\local\play\course_category\util;
 
 global $CFG;
 
 use core_course_category;
 use invalid_parameter_exception;
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 use Mockery;
 use moodle_exception;
 
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class course_category_path_test extends adler_testcase {
     /**

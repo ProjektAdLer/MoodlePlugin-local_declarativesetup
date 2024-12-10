@@ -1,0 +1,5 @@
+{
+  "plugintypes": {
+    "playbook": "local/declarativesetup/playbook"
+  }
+}

@@ -1,12 +1,12 @@
 <?php
 
-namespace local_adlersetup\local\play\web_services\models;
+namespace local_declarativesetup\local\play\web_services\models;
 
 use invalid_parameter_exception;
-use local_adlersetup\lib\adler_testcase;
+use local_declarativesetup\lib\adler_testcase;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class web_services_model_test extends adler_testcase {
     public function test_type_validation_enable_webservices(): void {

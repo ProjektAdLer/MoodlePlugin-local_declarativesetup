@@ -1,13 +1,13 @@
 <?php
 
-namespace local_adlersetup\local\play\user;
+namespace local_declarativesetup\local\play\user;
 
 use context_system;
-use local_adlersetup\lib\adler_testcase;
-use local_adlersetup\local\play\user\models\user_model;
+use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\play\user\models\user_model;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adlersetup/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class user_test extends adler_testcase {
     public function setUp(): void {

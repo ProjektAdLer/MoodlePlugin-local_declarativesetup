@@ -34,7 +34,7 @@
   </php>
 
   <testsuites>
-    <testsuite name="local_adlersetup_testsuite">
+    <testsuite name="local_declarativesetup_testsuite">
       <directory suffix="_test.php">./tests</directory>
     </testsuite>
   </testsuites>

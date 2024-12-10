@@ -1,6 +1,6 @@
 <?php
 
-namespace local_adlersetup\local\db;
+namespace local_declarativesetup\local\db;
 
 use moodle_database;
 
