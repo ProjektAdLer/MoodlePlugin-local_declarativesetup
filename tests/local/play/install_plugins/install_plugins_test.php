@@ -18,7 +18,7 @@ class install_plugins_test extends adler_testcase {
         global $CFG;
         parent::setUpBeforeClass();
 
-        self::$webserver_process = new Process(["php", "-S", "localhost:48531", $CFG->dirroot . "/local/declarativesetup/tests/resources/install_plugins_github_mock_server/router.php"]);
+        self::$webserver_process = new Process(["php", "-S", "localhost:48531", $CFG->dirroot . "/local/declarativesetup/tests/resources/install_plugins_mock_server/router.php"]);
         self::$webserver_process->start(function ($type, $buffer) {
             if (Process::ERR === $type) {
                 echo 'ERR > ' . $buffer;
@@ -122,7 +122,67 @@ class install_plugins_test extends adler_testcase {
         )]);
         $play->github_api_url = 'http://localhost:48531';
         $this->expectExceptionMessage('plugin downgrade is not allowed');
+        $play->play();
+    }
+
+    public function test_install_and_update_plugin_with_package_repo() {
+        $play = new install_plugins([new install_plugins_model(
+            '0.1.0',
+            'local_testplugin',
+             package_repo: 'http://localhost:48531/packages/moodle'
+        )]);
         $changed = $play->play();
+        $play_output = $play->get_output();
+
+        $this->assertTrue($changed, 'Plugin was not installed');
+        // assert plugin mod_adleradaptivity is installed
+        $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
+        $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin was not installed');
+        $this->assertEquals('0.1.0', $play_output['local_testplugin']['release'], 'Installed version is not correct');
+        $plugin_version = $installed_mods['testplugin'];
+        $plugin_ugly_version_number = $play_output['local_testplugin']['version'];
+
+
+        // test update
+        $play = new install_plugins([new install_plugins_model(
+            '0.1.1',
+            'local_testplugin',
+            package_repo: 'http://localhost:48531/packages/moodle'
+        )]);
+        $changed = $play->play();
+        $play_output = $play->get_output();
+
+        $this->assertTrue($changed, 'Plugin was not updated');
+        $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
+        $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
+        $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
+        $this->assertEquals('0.1.1', $play_output['local_testplugin']['release'], 'Installed version is not correct');
+        $this->assertGreaterThan($plugin_ugly_version_number, $play_output['local_testplugin']['version'], 'Version after update is not higher than before');
+
+        // test no change
+        $play = new install_plugins([new install_plugins_model(
+            '0.1.1',
+            'local_testplugin',
+            package_repo: 'http://localhost:48531/packages/moodle'
+        )]);
+        $changed = $play->play();
+        $play_output = $play->get_output();
+
+        $this->assertFalse($changed, 'Unexpected change occurred');
+        $installed_mods = plugin_manager::instance()->get_installed_plugins('local');
+        $this->assertArrayHasKey('testplugin', $installed_mods, 'Plugin disappeared after update');
+        $this->assertGreaterThan($plugin_version, $installed_mods['testplugin'], 'Version after update is not higher than before');
+        $this->assertEquals('0.1.1', $play_output['local_testplugin']['release'], 'Installed version is not correct');
+
+
+        // test downgrade
+        $play = new install_plugins([new install_plugins_model(
+            '0.1.0',
+            'local_testplugin',
+            'http://localhost:48531/packages/moodle'
+        )]);
+        $this->expectExceptionMessage('plugin downgrade is not allowed');
+        $play->play();
     }
 
     public function test_install_plugin_with_branch() {

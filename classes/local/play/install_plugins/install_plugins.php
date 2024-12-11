@@ -50,7 +50,6 @@ class install_plugins extends base_play {
         parent::__construct($input);
     }
 
-
     /**
      * @throws downgrade_exception
      * @throws moodle_exception
@@ -91,11 +90,23 @@ class install_plugins extends base_play {
     private function update_plugins(array $plugins): void {
         $plugin_infos = [];
         foreach ($plugins as $plugin) {
-            $github_release_info = $this->get_github_release_info($plugin);
+            if ($plugin->github_project !== null) {
+                $github_release_info = $this->get_github_release_info($plugin);
+                $download_url = $this->get_github_plugin_zip_download_url($this->get_github_release_info($plugin), $plugin);
+                $md5_hash = $this->get_github_plugin_zip_md5_hash($github_release_info, $plugin);
+            } else {
+                // is package repo
+                $download_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
+                $md5_file_content = file_get_contents("{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5");
+                $md5_hash = explode(' ', $md5_file_content)[0];
+                if ($md5_hash === false) {
+                    throw new moodle_exception('Failed to get md5 hash');
+                }
+            }
 
             $raw_plugin_info_version = new stdClass();
-            $raw_plugin_info_version->downloadurl = $this->get_plugin_zip_download_url($github_release_info, $plugin);
-            $raw_plugin_info_version->downloadmd5 = $this->get_plugin_zip_md5_hash($github_release_info, $plugin);
+            $raw_plugin_info_version->downloadurl = $download_url;
+            $raw_plugin_info_version->downloadmd5 = $md5_hash;
             $raw_plugin_info_version->id = 42;  // required, but not relevant here, very likely the id of the version in the moodle plugin repository
             $raw_plugin_info_version->version = 42;  // required, but not relevant here, long version, e.g. 2016052300
 
@@ -148,32 +159,22 @@ class install_plugins extends base_play {
      *
      * @throws moodle_exception
      */
-    private function get_plugin_zip_md5_hash(stdClass $github_release_info, install_plugins_model $plugin): string {
-        if ($plugin->package_repo !== null) {
-            $md5_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5";
-            $md5sum_file = file_get_contents($md5_url);
-            return explode(' ', $md5sum_file)[0];
-        } else {
-            $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
-            foreach ($github_release_info->assets as $asset) {
-                if ($asset->name === $asset_name) {
-                    $md5_url = $asset->url;
-                    $md5sum_file = file_get_contents($md5_url);
-                    return explode(' ', $md5sum_file)[0];
-                }
+    private function get_github_plugin_zip_md5_hash(stdClass $github_release_info, install_plugins_model $plugin): string {
+        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
+        foreach ($github_release_info->assets as $asset) {
+            if ($asset->name === $asset_name) {
+                $md5_url = $asset->url;
+                $md5sum_file = file_get_contents($md5_url);
+                return explode(' ', $md5sum_file)[0];
             }
-            throw new moodle_exception('MD5 hash file not found');
         }
+        throw new moodle_exception('MD5 hash file not found');
     }
 
     /**
      * @throws moodle_exception
      */
-    private function get_plugin_zip_download_url(stdClass $github_release_info, install_plugins_model $plugin): string {
-        if ($plugin->package_repo !== null) {
-            return "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
-        }
-
+    private function get_github_plugin_zip_download_url(stdClass $github_release_info, install_plugins_model $plugin): string {
         $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip";
         foreach ($github_release_info->assets as $asset) {
             if ($asset->name === $asset_name) {

@@ -5,11 +5,14 @@ $files = [
     'moodle-local_testplugin-0.1.1.zip',
     'moodle-local_testplugin-0.1.0.zip.md5',
     'moodle-local_testplugin-0.1.1.zip.md5',
+    'local_testplugin/0.1.0.zip',
+    'local_testplugin/0.1.0.zip.md5',
+    'local_testplugin/0.1.1.zip',
+    'local_testplugin/0.1.1.zip.md5',
 ];
 
 foreach ($files as $file) {
-    if (preg_match('/' . preg_quote($file) . '$/', $_SERVER["REQUEST_URI"])) {
-        header('HTTP/1.1 200 OK');
+    if (preg_match('/' . preg_quote($file, '/') . '$/', $_SERVER["REQUEST_URI"])) {        header('HTTP/1.1 200 OK');
         header('Content-Type: application/octet-stream');
         readfile(__DIR__ . '/' . $file);
         return true;
