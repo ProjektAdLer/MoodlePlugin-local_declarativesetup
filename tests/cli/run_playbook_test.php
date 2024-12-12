@@ -29,18 +29,22 @@ class run_playbook_test extends adler_testcase {
         // Mock the playbook class.
         $playbook_mock = Mockery::mock('overload:');
         $playbook_mock->shouldReceive('__construct')->once();
+        $run_call_count = 0;  // for some reason ->once() does not work here...
+        $playbook_mock->shouldReceive('run')->with([])->andReturnUsing(function () use (&$run_call_count) {
+            $run_call_count++;
+        });
         $playbook_mock_2 = Mockery::mock();
         $playbook_mock_2->shouldReceive('__construct')->never();
 
 
         // Mock the core_component::get_plugin_list_with_class method to return the mock playbook.
-        $coreComponentMock = Mockery::mock('core_component');
-        $coreComponentMock->shouldReceive('get_plugin_list_with_class')
+        $core_component_mock = Mockery::mock('core_component');
+        $core_component_mock->shouldReceive('get_plugin_list_with_class')
             ->andReturn([
                 'playbook_sample' => get_class($playbook_mock),
                 'playbook_sample2' => get_class($playbook_mock_2),
             ]);
-        di::set('core_component', $coreComponentMock);
+        di::set('core_component', $core_component_mock);
 
         // Capture the output of the script.
         $this->expectOutputString("done\n");
@@ -49,5 +53,27 @@ class run_playbook_test extends adler_testcase {
         $_SERVER['argv'] = ['run_playbook.php', '--playbook=sample'];
 
         require __DIR__ . '/../../cli/run_playbook.php';
+
+        $this->assertEquals(1, $run_call_count);
+    }
+
+    public function test_playbook_with_roles() {
+        $playbook_mock = Mockery::mock('overload:');
+        $run_call_count = 0;  // for some reason ->once() does not work here...
+        $playbook_mock->shouldReceive('run')->with(['role1', 'role2'])->andReturnUsing(function () use (&$run_call_count) {
+            $run_call_count++;
+        });
+        $core_component_mock = Mockery::mock('core_component');
+        $core_component_mock->shouldReceive('get_plugin_list_with_class')
+            ->andReturn([
+                'playbook_sample' => get_class($playbook_mock),
+            ]);
+        di::set('core_component', $core_component_mock);
+
+        $_SERVER['argv'] = ['run_playbook.php', '--playbook=sample', '--roles=role1,role2'];
+
+        require __DIR__ . '/../../cli/run_playbook.php';
+
+        $this->assertEquals(1, $run_call_count);
     }
 }

@@ -61,8 +61,10 @@ A typical playbook looks like this:
 <?php
 namespace playbook_<your playbook name>;
 
-class playbook {
-    public function __construct() {
+use local_declarativesetup\local\base_playbook;
+
+class playbook extends base_playbook {
+    public function playbook_implementation() {
         $play_model = new <play model>(<data>);
         $play_model->attribute = 'value';  // every attribute of default plays can be set through the constructor, but for
                                            // esp. for optional parameters, it is also ok setting them this way
@@ -74,15 +76,27 @@ class playbook {
         
         // ...
     }
+    
+    protected function failed(Exception $e): void {
+        // do nothing
+    }
 }
 ```
 
-All relevant code should be placed directly in the constructor. No other method will be called.
+All relevant code should be placed directly in the `playbook_implementation` method. The `failed` method will be called
+if the playbook execution fails and can be used for error handling.
 
-If a play fails it will throw an exception. Everything else is considered a success. It is ok to catch an exception to
-react on it (like stay in maintenance mode, calling an external API to send a notification might also be an acceptable 
-exception to the "don't use anything except plays" rule). But in general it's totally to not catch exceptions that 
-cannot be handled properly and let the execution fail with an exception.
+If a play fails it will throw an exception. Everything else is considered a success. In general, it's totally ok to not
+catch exceptions that cannot be handled properly and let the execution fail with an exception.
+
+### Roles
+It is possible to pass `roles` to the playbook. In the playbook implementation they are available as `$this->roles` or 
+`$this->has_role()`. Roles can be used to enable, disable or modify certain plays. For example configure additional 
+logging for the `dev` role.
+
+### Environment variables
+Environment variables can be accessed via `$this->get_environment_variable()`. This is also the recommended way for
+secret management. Environment variables have to be prefixed with `DECLARATIVE_SETUP_`.
 
 
 ### Creating new plays

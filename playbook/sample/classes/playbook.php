@@ -2,25 +2,23 @@
 
 namespace playbook_sample;
 
+use Exception;
 use invalid_parameter_exception;
+use local_declarativesetup\local\base_playbook;
 use local_declarativesetup\local\play\config\config;
 use local_declarativesetup\local\play\config\models\config_model;
-use local_declarativesetup\local\play\exceptions\not_implemented_exception;
 use local_declarativesetup\local\play\exceptions\play_was_already_played_exception;
-use local_declarativesetup\local\play\exceptions\play_was_not_played_exception;
 use local_declarativesetup\local\play\role\models\role_model;
 use local_declarativesetup\local\play\role\role;
 use local_declarativesetup\local\play\user\models\user_model;
 use local_declarativesetup\local\play\user\user;
 
-class playbook {
+class playbook extends base_playbook {
     /**
-     * @throws play_was_not_played_exception
-     * @throws not_implemented_exception
      * @throws play_was_already_played_exception
      * @throws invalid_parameter_exception
      */
-    public function __construct() {
+    protected function playbook_implementation(): void {
         // first ensure maintenance mode is active. A playbook can take some time and users should not use
         // the system while it is being configured.
         $play = new config([
@@ -64,5 +62,9 @@ class playbook {
             new config_model('maintenance_enabled', 0),
         ]);
         $play->play();
+    }
+
+    protected function failed(Exception $e): void {
+        // do nothing
     }
 }

@@ -37,31 +37,46 @@ require_once($CFG->libdir . '/clilib.php');
 // Get the cli options.
 list($options, $unrecognized) = cli_get_params(array(
     'help' => false,
-    'playbook' => false, // Add the new parameter here
+    'playbook' => false,
+    'roles' => false,
 ),
     array(
         'h' => 'help',
-        'p' => 'playbook', // Add a short option for the new parameter
+        'p' => 'playbook',
+        'r' => 'roles',
     ));
 
 $help =
     "
 Options:
 --playbook (-p)         Specify the playbook (subplugin name) to run.
+--roles (-r)            Specify the roles of this playbook execution.
 --help (-h)             Display this help message.
 
 Example of usage:
-php run_playbook.php --playbook=myplaybook
+php run_playbook.php --playbook=myplaybook --roles=role1,role2
 ";
 
 if ($unrecognized) {
     $unrecognized = implode("\n\t", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
+    cli_writeln($help);
 }
 
 if ($options['help']) {
     cli_writeln($help);
     die();
+}
+
+if (empty($options['playbook'])) {
+    cli_error("--playbook (-p) is a required parameter and cannot be empty. Use --help for usage instructions.");
+    cli_writeln($help);
+}
+
+if (!empty($options['roles'])) {
+    $roles = array_map('trim', explode(',', $options['roles']));
+} else {
+    $roles = [];
 }
 
 $playbooks = di::get(core_component::class)::get_plugin_list_with_class('playbook', 'playbook', 'classes/playbook.php');
@@ -72,6 +87,7 @@ if (array_key_exists($subplugin_name, $playbooks)) {
     cli_writeln(get_string('error_playbooknotfound', 'local_declarativesetup', $options['playbook']));
     throw new exit_exception(1);
 }
-new $playbooks[$subplugin_name]();
+$playbook = new $playbooks[$subplugin_name]();
+$playbook->run($roles);
 
 echo "done\n";
