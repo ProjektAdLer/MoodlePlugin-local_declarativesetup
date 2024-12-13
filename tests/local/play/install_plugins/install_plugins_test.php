@@ -26,7 +26,7 @@ class install_plugins_test extends adler_testcase {
                 echo 'OUT > ' . $buffer;
             }
         });
-        usleep(1000);  // wait for the server to start.
+        usleep(100 * 1000);  // wait for the server to start.
     }
 
     public static function tearDownAfterClass(): void {
@@ -129,7 +129,7 @@ class install_plugins_test extends adler_testcase {
         $play = new install_plugins([new install_plugins_model(
             '0.1.0',
             'local_testplugin',
-             package_repo: 'http://localhost:48531/packages/moodle'
+            package_repo: 'http://localhost:48531/packages/moodle'
         )]);
         $changed = $play->play();
         $play_output = $play->get_output();
