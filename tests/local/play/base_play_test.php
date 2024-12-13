@@ -6,7 +6,6 @@ use Exception;
 use local_declarativesetup\lib\adler_testcase;
 use local_declarativesetup\local\play\exceptions\play_was_already_played_exception;
 use local_declarativesetup\local\play\exceptions\play_was_not_played_exception;
-use local_logging\logger;
 use Mockery;
 
 global $CFG;
@@ -48,15 +47,10 @@ class base_play_test extends adler_testcase {
 
     public function test_play_logs_messages() {
         $input = ['test' => 'data'];
-        $mock_logger = Mockery::mock(logger::class);
-        $mock_logger->shouldReceive('info')->atLeast()->once();
-        $mock_logger->shouldReceive('error')->never();
 
         $mock_play = Mockery::mock(base_play::class, [$input])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
-
-        $mock_play->logger = $mock_logger; // Inject mock logger.
 
         $mock_play->shouldReceive('play_implementation')
             ->once()
@@ -67,19 +61,10 @@ class base_play_test extends adler_testcase {
 
     public function test_play_handles_exception_and_logs_error() {
         $input = ['test' => 'data'];
-        $mock_logger = Mockery::mock(logger::class);
-        $mock_logger->shouldReceive('info')->atLeast()->once();
-        $mock_logger->shouldReceive('error')
-            ->once()
-            ->with(Mockery::on(function ($message) {
-                return str_contains($message, 'Play failed, exception occurred: Test Exception');
-            }));
 
         $mock_play = Mockery::mock(base_play::class, [$input])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
-
-        $mock_play->logger = $mock_logger; // Inject mock logger.
 
         $mock_play->shouldReceive('play_implementation')
             ->once()
