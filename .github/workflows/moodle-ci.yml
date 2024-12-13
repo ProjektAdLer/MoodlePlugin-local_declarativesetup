@@ -1,0 +1,172 @@
+name: Moodle Plugin CI
+
+on:
+  push:
+    branches:
+      - '**'  # This includes all branches
+    tags-ignore:
+      - '**'  # This excludes all tags
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+
+    outputs:
+      include_list: ${{ steps.include_list.outputs.include_list }}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Define matrix
+        id: include_list
+        run: |
+          # Generates a json array with include entries for all possible combinations of PHP, Moodle branch and database
+          include_str="["
+          first_entry=true
+          for i in $(cat plugin_compatibility.json | jq -c '.[]'); do
+            moodle=$(echo "$i" | jq -r '.moodle')
+            for php in $(echo "$i" | jq -r '.PHP[]'); do
+              for database in pgsql mariadb; do
+                if [ "$first_entry" = true ]; then
+                  first_entry=false
+                else
+                  include_str="$include_str,"
+                fi
+                next_entry="{\"php\": \"$php\", \"moodle-branch\": \"$moodle\", \"database\": \"$database\", \"experimental\": false}"
+                include_str="$include_str$next_entry"
+              done
+            done
+          done
+          include_str="$include_str]"
+          echo "include_list=$include_str" >> "$GITHUB_OUTPUT"
+
+  test:
+    runs-on: ubuntu-22.04
+    needs: define-matrix
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+      mariadb:
+        image: mariadb:10
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3']
+        moodle-branch: ['main']
+        database: [pgsql, mariadb]
+        experimental: [true]
+        include: ${{ fromJSON(needs.define-matrix.outputs.include_list) }}
+
+    continue-on-error: ${{ matrix.experimental }}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ matrix.extensions }}
+          ini-values: max_input_vars=5000
+          coverage: pcov
+
+      - name: Initialise moodle-plugin-ci
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+          sudo locale-gen en_AU.UTF-8
+          echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
+
+      - name: Install moodle-plugin-ci
+        run: |
+          moodle-plugin-ci add-plugin ProjektAdLer/MoodlePluginLocalLogging
+          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
+        env:
+          DB: ${{ matrix.database }}
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: PHP Lint
+        if: ${{ always() }}
+        run: moodle-plugin-ci phplint
+
+      - name: PHP Copy/Paste Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpcpd
+
+      - name: PHP Mess Detector
+        continue-on-error: true # This step will show errors but will not fail
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpmd
+
+#     Coding style for this plugin differs from moodle's coding style in some points
+#      - name: Moodle Code Checker
+#        if: ${{ always() }}
+#        run: moodle-plugin-ci phpcs --max-warnings 0
+
+      - name: Moodle PHPDoc Checker
+        continue-on-error: true
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpdoc
+
+      - name: Validating
+        if: ${{ always() }}
+        run: moodle-plugin-ci validate
+
+      - name: Check upgrade savepoints
+        if: ${{ always() }}
+        run: moodle-plugin-ci savepoints
+
+      - name: Mustache Lint
+        if: ${{ always() }}
+        run: moodle-plugin-ci mustache
+
+      - name: Grunt
+        if: ${{ always() }}
+        run: moodle-plugin-ci grunt --max-lint-warnings 0
+
+      # running this just before the tests to make sure that the vendor directory is not included in previous steps
+      - name: Install plugin dependencies
+        run: |
+          cd moodle/local/declarativesetup
+          composer i
+
+      - name: PHPUnit tests
+        if: ${{ always() }}
+        run: |
+          # "pending completion" coveralls issue also appeared directly using phpunit command
+          moodle-plugin-ci phpunit --fail-on-warning --coverage-clover --testdox --coverage-pcov --coverage-text -vvv
+
+      - name: Coveralls upload
+        continue-on-error: true
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+        if: ${{ matrix.php == '8.3' && matrix.moodle-branch == 'MOODLE_405_STABLE' && matrix.database == 'mariadb' }}
+        run: |
+          # "pending completion" coveralls issue also appeared directly using php-coveralls
+          moodle-plugin-ci coveralls-upload

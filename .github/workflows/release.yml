@@ -1,0 +1,87 @@
+name: Moodle Plugin CI
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    env:
+      PLUGIN_NAME: 'local_declarativesetup'
+    permissions:
+      contents: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: update release version.php
+        run: |
+          sed -i "s/^\$plugin->release\s=\s'[^']*';/\$plugin->release = '${{ github.ref_name }}';/" version.php  # set release 
+          cli/bump_version.py  # set version
+          # set maturity to 
+          # - default: MATURITY_STABLE
+          # - release is marked as pre-release on github, then MATURITY_BETA
+          # - release name contains 'rc', then MATURITY_RC
+          if [[ "${{ github.ref_name }}" == *"rc"* ]]; then
+            sed -i "s/^\$plugin->maturity\s=\sMATURITY_[A-Z]*;/\$plugin->maturity = MATURITY_RC;/" version.php
+          elif [[ "${{ github.event_name }}" == "release" && "${{ github.event.release.prerelease }}" == "true" ]]; then
+            sed -i "s/^\$plugin->maturity\s=\sMATURITY_[A-Z]*;/\$plugin->maturity = MATURITY_BETA;/" version.php
+          else
+            sed -i "s/^\$plugin->maturity\s=\sMATURITY_[A-Z]*;/\$plugin->maturity = MATURITY_STABLE;/" version.php
+          fi
+
+      - name: remove files not needed for release
+        run: |
+          rm -rf .github tests vendor .gitignore composer.json composer.lock phpunit.xml dev_utils
+
+      - name: Create release archives
+        run: |
+          tar --exclude='.git' -czf /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.tgz *
+          zip -x .git -r /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip *
+
+      - name: Calculate MD5 hash
+        run: |
+          cd /tmp
+          md5sum /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.tgz > /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.tgz.md5
+          md5sum /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip > /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5
+
+      - name: Upload release archive (ZIP)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip
+          tag: ${{ github.ref_name }}
+      - name: Upload release archive (TGZ)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.tgz
+          tag: ${{ github.ref_name }}
+      - name: Upload MD5 hash files (ZIP)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5
+          tag: ${{ github.ref_name }}
+      - name: Upload MD5 hash files (TGZ)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.tgz.md5
+          tag: ${{ github.ref_name }}
+
+      - name: Upload to package registry
+        run: |
+          cd /tmp
+          for version in "${{ github.ref_name }}" "${{ github.ref_name%.* }}" "${{ github.ref_name%%.* }}" "latest"; do
+            if [[ "${{ github.event.release.prerelease }}" == "true" && "$version" != "${{ github.ref_name }}" ]]; then
+              continue
+            fi
+            if [[ "$version" == "latest" && "${{ github.event.release.prerelease }}" == "true" ]]; then
+              continue
+            fi
+            awk '{print $1 " moodle-'${{ env.PLUGIN_NAME }}-$version.zip'"}' /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5 > /tmp/moodle-${{ env.PLUGIN_NAME }}-$version.zip.md5
+            curl -u upload:${{ secrets.UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/$version.zip
+            curl -u upload:${{ secrets.UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-$version.zip.md5 https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/$version.zip.md5
+          done
