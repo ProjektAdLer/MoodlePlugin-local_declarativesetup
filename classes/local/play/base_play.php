@@ -13,6 +13,7 @@ abstract class base_play {
     protected object|array $input;
     protected bool $played = false;
     protected bool $state_changed = false;
+    protected logger $logger;
     public function __construct(object|array $input) {
         $this->input = $input;
         $this->logger = new logger('local_declarativesetup', $this->get_play_name());

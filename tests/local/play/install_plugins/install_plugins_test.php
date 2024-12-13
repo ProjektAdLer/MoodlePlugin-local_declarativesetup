@@ -26,7 +26,7 @@ class install_plugins_test extends adler_testcase {
                 echo 'OUT > ' . $buffer;
             }
         });
-        usleep(500);  // wait for the server to start.
+        usleep(1000);  // wait for the server to start.
     }
 
     public static function tearDownAfterClass(): void {

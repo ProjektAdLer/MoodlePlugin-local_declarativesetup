@@ -9,7 +9,7 @@ use local_declarativesetup\local\play\install_plugins\models\install_plugins_mod
 
 require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
-class install_plugin_cli_test extends adler_testcase {
+class install_plugin_test extends adler_testcase {
     public function test_missing_parameters() {
         // Capture the output of the script.
         $this->expectException(exit_exception::class);
