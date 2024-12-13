@@ -119,10 +119,13 @@ class user extends base_play {
             $user->lastname = $this->input->lastname;
             $user->lang = $this->input->language;
             $user->description = $this->input->description;
-            $user->password = $this->input->password;
+//            $user->password = $this->input->password;  // Setting the password this way respects password validation rules
             $user->timemodified = time();
 
             user_update_user($user);
+
+            //    Setting the password this way ignore password validation rules
+            update_internal_user_password($user, $this->input->password);
 
             return [true, get_complete_user_data('username', $this->input->username, null, true)];
         }
