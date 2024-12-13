@@ -14,8 +14,7 @@ use stdClass;
 
 global $CFG;
 require_once($CFG->libdir . '/clilib.php');
-require_once($CFG->dirroot.'/user/lib.php');  // required for user_<...> functions
-
+require_once($CFG->dirroot . '/user/lib.php');  // required for user_<...> functions
 
 
 /**
@@ -42,7 +41,7 @@ class user extends base_play {
         // check if user exists
         $user = get_complete_user_data('username', $this->input->username);
 
-        if ($user === false){
+        if ($user === false) {
             // if user does not exist, create user
             if ($this->input->present) {
                 $user = $this->create_user();
@@ -82,7 +81,7 @@ class user extends base_play {
     private function create_user(): stdClass {
         $user = new stdClass();
         $user->username = $this->input->username;
-        $user->password = $this->input->password;
+//        $user->password = $this->input->password;  // Setting the password this way respects password validation rules
         $user->email = $this->input->email;
         $user->firstname = $this->input->firstname;
         $user->lastname = $this->input->lastname;
@@ -97,7 +96,7 @@ class user extends base_play {
         $user->id = user_create_user($user);
 
         //    Setting the password this way ignore password validation rules
-        //    update_internal_user_password($user, $password);
+        update_internal_user_password($user, $this->input->password);
 
         return get_complete_user_data('username', $this->input->username, null, true);
     }
