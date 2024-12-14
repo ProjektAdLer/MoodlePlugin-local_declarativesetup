@@ -18,7 +18,7 @@ use stdClass;
 global $CFG;
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/adminlib.php');       // required for admin_apply_default_settings
-
+require_once($CFG->libdir . '/environmentlib.php');   // required for check_moodle_environment
 
 /**
  * @property install_plugins_model[] $input
@@ -28,6 +28,7 @@ class install_plugins extends base_play {
      * @var string The base url for the GitHub api
      */
     public string $github_api_url = "https://api.github.com";
+    private $github_request_context;
 
     /**
      * This play takes a list of {@link install_plugins_model} and ensure that these plugins in the specified version
@@ -48,6 +49,13 @@ class install_plugins extends base_play {
      */
     public function __construct(array $input) {
         parent::__construct($input);
+        $this->github_request_context = stream_context_create([
+            'http' => [
+                'header' => [
+                    'User-Agent: PHP'
+                ]
+            ]
+        ]);
     }
 
     /**
@@ -90,6 +98,7 @@ class install_plugins extends base_play {
     private function update_plugins(array $plugins): void {
         $plugin_infos = [];
         foreach ($plugins as $plugin) {
+            cli_writeln("Plugin \"{$plugin->moodle_name}\", version \"{$plugin->version}\"");
             if ($plugin->github_project !== null) {
                 $github_release_info = $this->get_github_release_info($plugin);
                 $download_url = $this->get_github_plugin_zip_download_url($this->get_github_release_info($plugin), $plugin);
@@ -98,15 +107,15 @@ class install_plugins extends base_play {
                 // is package repo
                 $download_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
                 $md5_file_content = file_get_contents("{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5");
-                $md5_hash = explode(' ', $md5_file_content)[0];
-                if ($md5_hash === false) {
+                if ($md5_file_content === false) {
                     throw new moodle_exception('Failed to get md5 hash');
                 }
+                $md5_hash = explode(' ', $md5_file_content)[0];
             }
 
             $raw_plugin_info_version = new stdClass();
             $raw_plugin_info_version->downloadurl = $download_url;
-            $raw_plugin_info_version->downloadmd5 = $md5_hash;
+            $raw_plugin_info_version->downloadmd5 = strtolower($md5_hash);
             $raw_plugin_info_version->id = 42;  // required, but not relevant here, very likely the id of the version in the moodle plugin repository
             $raw_plugin_info_version->version = 42;  // required, but not relevant here, long version, e.g. 2016052300
 
@@ -134,7 +143,10 @@ class install_plugins extends base_play {
         }
 
         $plugin_manager = plugin_manager::instance();
-        $plugin_manager->install_plugins($plugin_infos, true, false);
+        $success = $plugin_manager->install_plugins($plugin_infos, true, false);
+        if (!$success) {
+            throw new moodle_exception('failed to install plugin');
+        }
 
         $this->moodle_plugin_upgrade();
     }
@@ -144,7 +156,10 @@ class install_plugins extends base_play {
      */
     private function get_github_release_info(install_plugins_model $plugin): stdClass {
         $request_url = "{$this->github_api_url}/repos/{$plugin->github_project}/releases/tags/{$plugin->version}";
-        $response = file_get_contents($request_url);
+        $response = file_get_contents($request_url, context: $this->github_request_context);
+        if ($response === false) {
+            throw new ddl_exception('failed to get release info');
+        }
 
         $response = json_decode($response);
         if ($response === null || !property_exists($response, 'assets')) {
@@ -164,7 +179,7 @@ class install_plugins extends base_play {
         foreach ($github_release_info->assets as $asset) {
             if ($asset->name === $asset_name) {
                 $md5_url = $asset->url;
-                $md5sum_file = file_get_contents($md5_url);
+                $md5sum_file = file_get_contents($md5_url, context: $this->github_request_context);
                 return explode(' ', $md5sum_file)[0];
             }
         }
@@ -206,7 +221,7 @@ class install_plugins extends base_play {
     /**
      * Update plugins in the moodle installation
      *
-     * @throws coding_exception
+     * @throws moodle_exception
      */
     private function moodle_plugin_upgrade(): void {
         global $CFG;
@@ -216,19 +231,19 @@ class install_plugins extends base_play {
 
         // this checks for moodle dependencies and so on. I don't think it is necessary for the plugin installation,
         // but I am not sure, and it does not hurt to call it.
-        list($envstatus, $environment_results) = check_moodle_environment(normalize_version($CFG->version), ENV_SELECT_RELEASE);
+        list($envstatus, $environment_results) = check_moodle_environment(normalize_version($CFG->release), ENV_SELECT_RELEASE);
         if (!$envstatus) {
             $errors = environment_get_errors($environment_results);
             foreach ($errors as $error) {
                 list($info, $report) = $error;
                 cli_writeln("!! $info !!\n$report\n\n");
             }
-            throw new coding_exception('environment check failed');
+            throw new moodle_exception('environment check failed', debuginfo: "$info\n$report");
         }
 
         $failed = array();
         if (!core_plugin_manager::instance()->all_plugins_ok($CFG->version, $failed, $CFG->branch)) {
-            throw new coding_exception('plugin check failed');
+            throw new moodle_exception('plugin check failed');
         }
 
         upgrade_noncore(true);
