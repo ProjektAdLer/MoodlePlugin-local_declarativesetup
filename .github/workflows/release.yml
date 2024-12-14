@@ -61,5 +61,5 @@ jobs:
         run: |
           cd /tmp
           awk '{print $1 " moodle-'${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip'"}' /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5 > /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5
-          curl -u upload:${{ secrets.UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/${{ github.ref_name }}.zip
-          curl -u upload:${{ secrets.UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5 https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/${{ github.ref_name }}.zip.md5
+          curl --fail-with-body -u upload:${{ secrets.PACKAGE_REGISTRY_UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/${{ github.ref_name }}.zip
+          curl --fail-with-body -u upload:${{ secrets.PACKAGE_REGISTRY_UPLOAD_PASSWORD }} -T /tmp/moodle-${{ env.PLUGIN_NAME }}-${{ github.ref_name }}.zip.md5 https://packages.projekt-adler.eu/upload/moodle/${{ env.PLUGIN_NAME }}/${{ github.ref_name }}.zip.md5
