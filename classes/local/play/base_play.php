@@ -2,21 +2,21 @@
 
 namespace local_declarativesetup\local\play;
 
-use dml_exception;
+
+global $CFG;
+require_once($CFG->libdir . '/clilib.php');
+
 use Exception;
 use local_declarativesetup\local\play\exceptions\not_implemented_exception;
 use local_declarativesetup\local\play\exceptions\play_was_already_played_exception;
 use local_declarativesetup\local\play\exceptions\play_was_not_played_exception;
-use local_logging\logger;
 
 abstract class base_play {
     protected object|array $input;
     protected bool $played = false;
     protected bool $state_changed = false;
-    protected logger $logger;
     public function __construct(object|array $input) {
         $this->input = $input;
-        $this->logger = new logger('local_declarativesetup', $this->get_play_name());
     }
 
     /**
@@ -24,23 +24,24 @@ abstract class base_play {
      *
      * @return bool True if state changed, false otherwise
      * @throws play_was_already_played_exception
-     * @throws dml_exception
      */
     public final function play(): bool {
-        $this->logger->info('Playing action');
-        $this->logger->info('Desired state: ' . json_encode($this->input));
+        cli_writeln('----------------------------------------------');
+        cli_writeln('[INFO] Playing action: "' . $this->get_play_name() . '"');
+        cli_writeln('----------------------------------------------');
+        cli_writeln('[INFO] Desired state: ' . json_encode($this->input));
         if ($this->played) {
-            $this->logger->error('Action was already played');
+            cli_writeln('[ERROR] Action was already played');
             throw new play_was_already_played_exception();
         }
         $this->played = true;
         try {
             $this->state_changed = $this->play_implementation();
         } catch (Exception $e) {
-            $this->logger->error('Play failed, exception occurred: ' . $e->getMessage());
+            cli_writeln('[ERROR] Play failed, exception occurred: ' . $e->getMessage());
             throw $e;
         }
-        $this->logger->info('Changed state: ' . ($this->state_changed ? 'yes' : 'no'));
+        cli_writeln('[INFO] Changed state: ' . ($this->state_changed ? 'yes' : 'no'));
         return $this->state_changed;
     }
 
