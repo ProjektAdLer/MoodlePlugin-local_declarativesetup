@@ -142,13 +142,16 @@ class install_plugins extends base_play {
             $plugin_infos[] = api::client()->validate_pluginfo_format($raw_plugin_info_root);
         }
 
-        $plugin_manager = plugin_manager::instance();
-        $success = $plugin_manager->install_plugins($plugin_infos, true, false);
-        if (!$success) {
-            throw new moodle_exception('failed to install plugin');
+        if (count($plugin_infos) > 0) {
+            $plugin_manager = plugin_manager::instance();
+            $success = $plugin_manager->install_plugins($plugin_infos, true, false);
+            if (!$success) {
+                throw new moodle_exception('failed to install plugin');
+            }
+            $this->moodle_plugin_upgrade();
+        } else {
+            cli_writeln('[INFO] No plugins to update');
         }
-
-        $this->moodle_plugin_upgrade();
     }
 
     /**
