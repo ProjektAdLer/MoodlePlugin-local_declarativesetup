@@ -29,6 +29,3 @@ $plugin->release = '0.1.0';
 $plugin->version = 2024110307;
 $plugin->requires = 2024042200;
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->dependencies = array(
-    'local_logging' => ANY_VERSION,
-);
