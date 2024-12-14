@@ -81,13 +81,16 @@ if (!empty($options['roles'])) {
 
 $playbooks = di::get(core_component::class)::get_plugin_list_with_class('playbook', 'playbook', 'classes/playbook.php');
 $subplugin_name = "playbook_" . $options['playbook'];
-if (array_key_exists($subplugin_name, $playbooks)) {
-    $playbook = new $playbooks[$subplugin_name]();
-} else {
+if (!array_key_exists($subplugin_name, $playbooks)) {
     cli_writeln(get_string('error_playbooknotfound', 'local_declarativesetup', $options['playbook']));
     throw new exit_exception(1);
 }
-$playbook = new $playbooks[$subplugin_name]();
-$playbook->run($roles);
 
+try {
+    $playbook = new $playbooks[$subplugin_name]($roles);
+    $playbook->run();
+} catch (Exception $e) {
+    cli_writeln($e->getMessage());
+    throw new exit_exception(1);
+}
 echo "done\n";

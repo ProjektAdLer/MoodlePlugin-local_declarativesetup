@@ -28,9 +28,9 @@ class run_playbook_test extends adler_testcase {
     public function test_playbook_found() {
         // Mock the playbook class.
         $playbook_mock = Mockery::mock('overload:');
-        $playbook_mock->shouldReceive('__construct')->once();
+        $playbook_mock->shouldReceive('__construct')->once()->with([]);
         $run_call_count = 0;  // for some reason ->once() does not work here...
-        $playbook_mock->shouldReceive('run')->with([])->andReturnUsing(function () use (&$run_call_count) {
+        $playbook_mock->shouldReceive('run')->andReturnUsing(function () use (&$run_call_count) {
             $run_call_count++;
         });
         $playbook_mock_2 = Mockery::mock();
@@ -59,8 +59,9 @@ class run_playbook_test extends adler_testcase {
 
     public function test_playbook_with_roles() {
         $playbook_mock = Mockery::mock('overload:');
+        $playbook_mock->shouldReceive('__construct')->once()->with(['role1', 'role2']);
         $run_call_count = 0;  // for some reason ->once() does not work here...
-        $playbook_mock->shouldReceive('run')->with(['role1', 'role2'])->andReturnUsing(function () use (&$run_call_count) {
+        $playbook_mock->shouldReceive('run')->andReturnUsing(function () use (&$run_call_count) {
             $run_call_count++;
         });
         $core_component_mock = Mockery::mock('core_component');
