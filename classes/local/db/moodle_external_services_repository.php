@@ -9,8 +9,8 @@ class moodle_external_services_repository extends base_repository {
     /**
      * @throws dml_exception
      */
-    public function get_external_service_by_name(string $name): object {
-        return $this->db->get_record('external_services', ['name' => $name], '*', MUST_EXIST);
+    public function get_external_service_by_shortname(string $shortname): object {
+        return $this->db->get_record('external_services', ['shortname' => $shortname], '*', MUST_EXIST);
     }
 
     /**
