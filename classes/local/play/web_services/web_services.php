@@ -108,7 +108,7 @@ class web_services extends base_play {
      */
     private function update_mobile_service(): bool {
         if ($this->input->enable_moodle_mobile_service !== web_services_model::STATE_UNSET) {
-            $external_service_record = di::get(moodle_external_services_repository::class)->get_external_service_by_name(MOODLE_OFFICIAL_MOBILE_SERVICE);
+            $external_service_record = di::get(moodle_external_services_repository::class)->get_external_service_by_shortname(MOODLE_OFFICIAL_MOBILE_SERVICE);
             if ($external_service_record->enabled === 1 && $this->input->enable_moodle_mobile_service === web_services_model::STATE_DISABLED) {
                 $external_service_record->enabled = 0;
                 di::get(moodle_external_services_repository::class)->update_external_service($external_service_record->id, $external_service_record);
