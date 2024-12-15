@@ -229,6 +229,8 @@ class install_plugins extends base_play {
     private function moodle_plugin_upgrade(): void {
         global $CFG;
 
+        // it was trial and error that showed it is required to delete these two caches. Otherwise, plugins will be stuck in "To be installed" state
+        purge_other_caches();
         // have to reset cached plugin list, otherwise the new plugin is not recognized
         core_component::reset();
 
@@ -243,7 +245,6 @@ class install_plugins extends base_play {
             }
             throw new moodle_exception('environment check failed', debuginfo: "$info\n$report");
         }
-
         $failed = array();
         if (!core_plugin_manager::instance()->all_plugins_ok($CFG->version, $failed, $CFG->branch)) {
             throw new moodle_exception('plugin check failed');
