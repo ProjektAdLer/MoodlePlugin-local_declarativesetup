@@ -34,7 +34,7 @@ abstract class base_playbook {
     protected function get_environment_variable(string $name): string {
         $value = getenv('DECLARATIVE_SETUP_' . $name);
         if ($value === false) {
-            throw new Exception("Environment variable $name not set");
+            throw new Exception("Environment variable DECLARATIVE_SETUP_$name not set");
         }
         return $value;
     }

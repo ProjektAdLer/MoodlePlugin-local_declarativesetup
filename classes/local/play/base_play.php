@@ -24,6 +24,7 @@ abstract class base_play {
      *
      * @return bool True if state changed, false otherwise
      * @throws play_was_already_played_exception
+     * @throws Exception
      */
     public final function play(): bool {
         cli_writeln('----------------------------------------------');

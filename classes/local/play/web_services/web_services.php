@@ -104,6 +104,11 @@ class web_services extends base_play {
     }
 
     /**
+     * Enable or disable the MOODLE_OFFICIAL_MOBILE_SERVICE by setting the enabled field in the external_services table.
+     *
+     * There is also a setting `enablemobilewebservice`, but from experience:
+     * > for any reason this does not set the corresponding option in the web ui and everything seems to work without it anyway.
+     *
      * @throws dml_exception
      */
     private function update_mobile_service(): bool {
