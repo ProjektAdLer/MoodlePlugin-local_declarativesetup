@@ -421,25 +421,21 @@ EOD;
      * @dataProvider provide_update_setting_data
      */
     public function test_enable_mobile_service(int $initally_enabled, int $desired_enabled) {
-        if (in_array($initally_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
-            $capturedData = $this->get_sample_config_php("\$CFG->" . MOODLE_OFFICIAL_MOBILE_SERVICE . " = " . ($initally_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false') . ";");
-        } else {
-            $capturedData = $this->get_sample_config_php();
+        global $DB;
+        $mobile_serve_id = $DB->get_record('external_services', ['shortname' => 'moodle_mobile_app'], '*', MUST_EXIST)->id;
+        if ($initally_enabled === web_services_model::STATE_ENABLED) {
+            $DB->update_record('external_services', (object)['id' => $mobile_serve_id, 'enabled' => 1]);
         }
+        if ($initally_enabled === web_services_model::STATE_DISABLED || $initally_enabled === web_services_model::STATE_UNSET) {
+            $DB->update_record('external_services', (object)['id' => $mobile_serve_id, 'enabled' => 0]);
+        }
+
+        $capturedData = $this->get_sample_config_php();
 
         $php_mock = Mockery::mock(php::class)->makePartial();
         di::set(php::class, $php_mock);
         //configure file write access
-        if ($initally_enabled !== $desired_enabled) {
-            $php_mock->shouldReceive('file_put_contents')
-                ->withArgs(function ($filename, $data) use (&$capturedData) {
-                    // Capture the arguments
-                    $capturedData = $data;
-                    return true; // Return true to indicate the arguments match
-                });
-        } else {
-            $php_mock->shouldNotReceive('file_put_contents');
-        }
+        $php_mock->shouldNotReceive('file_put_contents');
         $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
             return $capturedData;
         });
@@ -452,26 +448,20 @@ EOD;
 
         $changed = $play->play();
 
-        // only check file content if it is excepted to be changed. Otherwise, the mock handles the check
-        if ($desired_enabled !== $initally_enabled) {
-            $this->assertTrue($changed);
-            // check file content to not contain more than expected number of enablewebservices. Can only test
-            // "simulated config.php" in case it was modified.
-            $this->assertEquals(
-                $desired_enabled === web_services_model::STATE_UNSET ? 0 : 1,
-                substr_count($capturedData, MOODLE_OFFICIAL_MOBILE_SERVICE),
-                'enablewebservices found more often than expected'
-            );
-            // check config.php length longer than 1 line. There is no scenario when it could have one line or less
-            // and be valid. Can only test "simulated config.php" in case it was modified.
-            $this->assertGreaterThan(1, substr_count($capturedData, "\n"), 'config.php has less than 2 lines');
-            if (in_array($desired_enabled, [web_services_model::STATE_ENABLED, web_services_model::STATE_DISABLED])) {
-                $this->assertStringContainsString(MOODLE_OFFICIAL_MOBILE_SERVICE . ' = ' . ($desired_enabled === web_services_model::STATE_ENABLED ? 'true' : 'false'), $capturedData);
-            } else {
-                $this->assertStringNotContainsString(MOODLE_OFFICIAL_MOBILE_SERVICE, $capturedData);
-            }
-        } else {
+        if ($desired_enabled === web_services_model::STATE_UNSET ||  // if desired is unset means no change
+            $desired_enabled === $initally_enabled ||  // if desired is same as initial state means no change
+            ($initally_enabled === web_services_model::STATE_UNSET && $desired_enabled === web_services_model::STATE_DISABLED)  // in this test initial unset is same as initial disabled
+        ) {
             $this->assertFalse($changed);
+        } else {
+            $this->assertTrue($changed);
+        }
+
+        if ($desired_enabled === web_services_model::STATE_ENABLED) {
+            $this->assertEquals('1', $DB->get_record('external_services', ['id' => $mobile_serve_id])->enabled);
+        }
+        if ($desired_enabled === web_services_model::STATE_DISABLED) {
+            $this->assertEquals('0', $DB->get_record('external_services', ['id' => $mobile_serve_id])->enabled);
         }
     }
 }
