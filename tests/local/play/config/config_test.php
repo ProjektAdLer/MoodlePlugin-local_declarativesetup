@@ -13,7 +13,6 @@ use Mockery;
 require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class config_test extends adler_testcase {
-    // TODO: test other data types (bool, int)
     private function get_sample_config_php(): string {
         return <<<'EOD'
 <?php  // Moodle configuration file
@@ -34,6 +33,67 @@ EOD;
                 'array' => false,
             ],
         ];
+    }
+
+    public function provide_data_of_different_types() {
+        return [
+            'string soft' => [
+                'value' => 'somevalue',
+                'soft' => true,
+            ],
+            'string forced' => [
+                'value' => 'somevalue',
+                'soft' => false,
+            ],
+            'int soft' => [
+                'value' => 42,
+                'soft' => true,
+            ],
+            'int forced' => [
+                'value' => 42,
+                'soft' => false,
+            ],
+            'bool soft' => [
+                'value' => true,
+                'soft' => true,
+            ],
+            'bool forced' => [
+                'value' => true,
+                'soft' => false,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provide_data_of_different_types
+     */
+    public function test_add_and_get_setting($value, bool $soft) {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        if ($soft) {
+            $php_mock->shouldNotReceive('file_put_contents');
+        } else {
+            $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+                $capturedData = $data; // Store the written data
+                return true; // Return true to indicate the arguments match
+            });
+        }
+        di::set(php::class, $php_mock);
+
+        $play = new config([
+            new config_model('new_config', $value, forced: !$soft),
+        ]);
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        if ($soft) {
+            $this->assertEquals($value, get_config('', 'new_config'));
+        } else {
+            $this->assertStringContainsString('$CFG->new_config = ' . var_export($value, true) . ';', $capturedData);
+        }
     }
 
     /**

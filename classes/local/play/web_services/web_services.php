@@ -139,7 +139,7 @@ class web_services extends base_play {
     protected function play_implementation(): bool {
         return
             $this->update_setting($this->input->enable_webservices) |
-            $this->update_mobile_service() |  // TODO: test this change
+            $this->update_mobile_service() |
             $this->update_protocols();
     }
 

@@ -9,12 +9,24 @@ use local_declarativesetup\local\db\moodle_config_repository;
 use local_declarativesetup\local\exceptions\setting_does_not_exist;
 use local_declarativesetup\local\exceptions\setting_is_forced;
 use local_declarativesetup\local\moodle_core;
+use local_declarativesetup\local\php;
 use Mockery;
 
 global $CFG;
 require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class config_manager_test extends adler_testcase {
+    private function get_sample_config_php(): string {
+        return <<<'EOD'
+<?php  // Moodle configuration file
+unset($CFG);
+global $CFG;
+$CFG = new stdClass();
+$CFG->forced_config    = 'somevalue';
+require_once(__DIR__ . '/lib/setup.php'); // Do not edit
+EOD;
+    }
+
     public function test_set_soft_setting_non_forced() {
         $config_php_file_manager_mock = Mockery::mock(config_php_file_manager::class);
         $moodle_core_mock = Mockery::mock(moodle_core::class);
@@ -57,55 +69,6 @@ class config_manager_test extends adler_testcase {
 
         $config_manager->set_forced_setting('testsetting', 'testvalue');
     }
-
-//    private function get_sample_config_php(): string {
-//        return <<<'EOD'
-//<?php  // Moodle configuration file
-//unset($CFG);
-//global $CFG;
-//$CFG = new stdClass();
-//$CFG->someconfig    = 'somevalue';
-//require_once(__DIR__ . '/lib/setup.php'); // Do not edit
-//EOD;
-//    }
-//
-//    public function test_delete_setting_with_forced_setting() {
-//        $php_mock = Mockery::mock(php::class);
-//        $capturedData = $this->get_sample_config_php(); // Initial content
-//        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
-//            return $capturedData;
-//        });
-//        $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
-//            $capturedData = $data; // Store the written data
-//            return true; // Return true to indicate the arguments match
-//        });
-//        di::set(php::class, $php_mock);
-//        set_config('someconfig', 'somevalue');
-//
-//
-//        $config_manager = di::get(config_manager::class);
-//        $config_manager->delete_setting('someconfig');
-//
-//        $this->assertStringNotContainsString('someconfig', $capturedData);
-//        $this->assertFalse($config_manager->setting_exists('someconfig'));
-//    }
-
-//    public function test_delete_setting_with_soft_setting() {
-//        $php_mock = Mockery::mock(php::class);
-//        $capturedData = $this->get_sample_config_php(); // Initial content
-//        $php_mock->shouldReceive('file_get_contents')->andReturnUsing(function () use (&$capturedData) {
-//            return $capturedData;
-//        });
-//        $php_mock->shouldNotReceive('file_put_contents');
-//        di::set(php::class, $php_mock);
-//        set_config('someotherconfig', 'somevalue');
-//
-//        $config_manager = di::get(config_manager::class);
-//        $config_manager->delete_setting('someotherconfig');
-//
-//        $this->assertFalse($config_manager->setting_exists('someotherconfig'));
-//    }
-
 
     public function test_delete_setting_exists_and_forced() {
         // Mock internal method calls
@@ -233,5 +196,68 @@ class config_manager_test extends adler_testcase {
         $config_manager->shouldReceive('get_value')->with('testsetting', null)->andThrow(setting_does_not_exist::class);
 
         $this->assertFalse($config_manager->setting_exists('testsetting', null));
+    }
+
+    public function provide_data_of_different_types() {
+        return [
+            'string soft' => [
+                'value' => 'somevalue',
+                'soft' => true,
+            ],
+            'string forced' => [
+                'value' => 'somevalue',
+                'soft' => false,
+            ],
+            'int soft' => [
+                'value' => 42,
+                'soft' => true,
+            ],
+            'int forced' => [
+                'value' => 42,
+                'soft' => false,
+            ],
+            'bool soft' => [
+                'value' => true,
+                'soft' => true,
+            ],
+            'bool forced' => [
+                'value' => true,
+                'soft' => false,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provide_data_of_different_types
+     */
+    public function test_add_and_get_setting($value, bool $soft) {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        if ($soft) {
+            $php_mock->shouldNotReceive('file_put_contents');
+        } else {
+            $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+                $capturedData = $data; // Store the written data
+                return true; // Return true to indicate the arguments match
+            });
+        }
+        di::set(php::class, $php_mock);
+
+        $config_manager = di::get(config_manager::class);
+        if ($soft) {
+            $config_manager->set_soft_setting('new_config', $value);
+        } else {
+            $config_manager->set_forced_setting('new_config', $value);
+        }
+
+        if ($soft) {
+            $this->assertEquals($value, $config_manager->get_value('new_config'));
+        } else {
+            $this->assertStringContainsString('$CFG->new_config = ' . var_export($value, true) . ';', $capturedData);
+            $this->assertEquals($value, $config_manager->get_value('new_config'));
+        }
     }
 }
