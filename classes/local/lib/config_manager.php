@@ -32,7 +32,6 @@ class config_manager {
      * Sets a config value in the config.php file. If the setting is already set in the config.php file, it will be overwritten.
      * Does not change the setting in the database.
      *
-     * @return void
      * @throws moodle_exception
      */
     public function set_forced_setting(string $config_name, string|int|bool $config_value, string|null $plugin = null): void {
