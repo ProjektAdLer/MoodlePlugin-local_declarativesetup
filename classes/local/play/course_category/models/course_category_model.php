@@ -12,12 +12,11 @@ class course_category_model {
      * @param role_user_model[] $users
      * @param string $description
      */
-    public function __construct(string $course_category_path,
+    public function __construct(string        $course_category_path,
                                 public bool   $present = true,
                                 public bool   $append_users = true,
                                 public array  $users = [],
                                 public string $description = "created by declarativesetup") {
-
         $this->course_category_path = new course_category_path($course_category_path);
     }
 

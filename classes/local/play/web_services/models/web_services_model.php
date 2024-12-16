@@ -10,13 +10,20 @@ class web_services_model {
     const STATE_UNSET = -1;
 
     /**
-     * @param int $enable_webservices see {@link $enable_webservices}
-     * @param string[] $protocols_enable_list see {@link $protocols_enable_list}
-     * @param string[] $protocols_disable_list see {@link $protocols_disable_list}
-     * @param int $enable_moodle_mobile_service see {@link $enable_moodle_mobile_service}
+     * @param int $enable_webservices one of {@link STATE_ENABLED}, {@link STATE_DISABLED}, {@link STATE_UNSET}
+     * @param string[] $protocols_enable_list List of protocols to enable. A protocol is only allowed in one of both
+     *  lists: {@link $protocols_enable_list} or {@link $protocols_disable_list}. Protocols not in any list are
+     *  kept unchanged. To force the {@link $protocols_enable_list} to be the only enabled protocols, set
+     *  {@link $protocols_disable_list} to ['*']. This will also prevent changing the enabled protocols in the moodle
+     *  admin interface.
+     * @param string[] $protocols_disable_list
+     * @param int $enable_moodle_mobile_service one of {@link STATE_ENABLED}, {@link STATE_DISABLED}, {@link STATE_UNSET}
      * @throws invalid_parameter_exception
      */
-    public function __construct(int $enable_webservices, array $protocols_enable_list, array $protocols_disable_list = [], int $enable_moodle_mobile_service = self::STATE_UNSET) {
+    public function __construct(public int   $enable_webservices,
+                                public array $protocols_enable_list,
+                                public array $protocols_disable_list = [],
+                                public int   $enable_moodle_mobile_service = self::STATE_UNSET) {
         // validation
         foreach ($protocols_disable_list as $protocol) {
             if (in_array($protocol, $protocols_enable_list)) {
@@ -36,35 +43,5 @@ class web_services_model {
         if (!in_array($enable_moodle_mobile_service, [self::STATE_ENABLED, self::STATE_DISABLED, self::STATE_UNSET])) {
             throw new invalid_parameter_exception('Invalid value for enable_moodle_mobile_service');
         }
-
-
-        $this->enable_webservices = $enable_webservices;
-        $this->protocols_enable_list = $protocols_enable_list;
-        $this->protocols_disable_list = $protocols_disable_list;
-        $this->enable_moodle_mobile_service = $enable_moodle_mobile_service;
     }
-
-    /**
-     * @var int $enable_webservices one of {@link STATE_ENABLED}, {@link STATE_DISABLED}, {@link STATE_UNSET}
-     */
-    public int $enable_webservices;
-
-    /**
-     * @var string[] $protocols_enable_list List of protocols to enable. A protocol is only allowed in one of both
-     * lists: {@link $protocols_enable_list} or {@link $protocols_disable_list}. Protocols not in any list are
-     * kept unchanged. To force the {@link $protocols_enable_list} to be the only enabled protocols, set
-     * {@link $protocols_disable_list} to ['*']. This will also prevent changing the enabled protocols in the moodle
-     * admin interface.
-     */
-    public array $protocols_enable_list;
-
-    /**
-     * @var string[] $protocols_disable_list see {@link $protocols_enable_list}
-     */
-    public array $protocols_disable_list;
-
-    /**
-     * @var int $enable_moodle_mobile_service one of {@link STATE_ENABLED}, {@link STATE_DISABLED}, {@link STATE_UNSET}
-     */
-    public int $enable_moodle_mobile_service;
 }
