@@ -38,14 +38,12 @@ require_once($CFG->libdir . '/clilib.php');
 list($options, $unrecognized) = cli_get_params(
     [
         'help' => false,
-        'github-project' => null,
         'package-repo' => null,
         'version' => null,
         'moodle-name' => null,
     ],
     [
         'h' => 'help',
-        'g' => 'github-project',
         'p' => 'package-repo',
         'v' => 'version',
         'm' => 'moodle-name',
@@ -56,7 +54,6 @@ $help = "
 CLI script for installing plugins in Moodle.
 
 Options:
---github-project (-g)  GitHub project in the form <user>/<repo>.
 --package-repo (-p)    Path to the package repository.
 --version (-v)         Plugin version or branch (e.g., 1.0.0).
 --moodle-name (-m)     Moodle plugin name (e.g., mod_adleradaptivity).
@@ -71,27 +68,15 @@ if ($options['help']) {
     exit(0);
 }
 
-if (empty($options['version']) || empty($options['moodle-name'])) {
+if (empty($options['version']) || empty($options['moodle-name']) || empty($options['package-repo'])) {
     cli_writeln("Missing required parameters. Use --help for details.");
-    throw new exit_exception();
-}
-
-// Validate and populate the model with either github-project or package-repo.
-if (!empty($options['github-project']) && !empty($options['package-repo'])) {
-    cli_writeln("Error: You can only specify either --github-project or --package-repo, not both.");
-    throw new exit_exception();
-}
-
-if (empty($options['github-project']) && empty($options['package-repo'])) {
-    cli_writeln("Error: You must specify either --github-project or --package-repo.");
     throw new exit_exception();
 }
 
 $plugin = new install_plugins_model(
     $options['version'],
     $options['moodle-name'],
-    $options['github-project'] ?? null,
-    $options['package-repo'] ?? null
+    $options['package-repo']
 );
 
 $play = new install_plugins([$plugin]);

@@ -38,8 +38,8 @@ class install_plugin_test extends adler_testcase {
         // Run the script with valid parameters.
         $_SERVER['argv'] = [
             'install_plugin.php',
-            '--github-project=ProjektAdler/MoodlePluginModAdleradaptivity',
-            '--version=1.0.0',
+            '--package-repo=http://localhost:48531/packages/moodle',
+            '--version=0.1.0',
             '--moodle-name=mod_adleradaptivity'
         ];
 

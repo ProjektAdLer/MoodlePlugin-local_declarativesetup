@@ -24,19 +24,10 @@ require_once($CFG->libdir . '/environmentlib.php');   // required for check_mood
  * @property install_plugins_model[] $input
  */
 class install_plugins extends base_play {
-    /** For testing purposes, allows to redirect the api calls to a different url.
-     * @var string The base url for the GitHub api
-     */
-    public string $github_api_url = "https://api.github.com";
-    private $github_request_context;
-
     /**
      * This play takes a list of {@link install_plugins_model} and ensure that these plugins in the specified version
      * are installed.
-     * Supports multiple sources:
-     * - GitHub: A release with the version number must exist in the GitHub repository and
-     *   a assets with the name "moodle-<plugin_name>-<version>.zip" and "moodle-<plugin_name>-<version>.zip"
-     *   (<md5 hash>  <filename>) must be attached to the release.
+     * Supported sources:
      * - package registry: A web endpoint providing a public accessible endpoint with a list of folders matching the
      *   moodle plugin name (e.g. local_test) and below these folders a list of files <version number>.zip and
      *   <version number>.zip.md5. The full url for a package looks like that:
@@ -49,13 +40,6 @@ class install_plugins extends base_play {
      */
     public function __construct(array $input) {
         parent::__construct($input);
-        $this->github_request_context = stream_context_create([
-            'http' => [
-                'header' => [
-                    'User-Agent: PHP'
-                ]
-            ]
-        ]);
     }
 
     /**
@@ -99,18 +83,16 @@ class install_plugins extends base_play {
         $plugin_infos = [];
         foreach ($plugins as $plugin) {
             cli_writeln("Plugin \"{$plugin->moodle_name}\", version \"{$plugin->version}\"");
-            if ($plugin->github_project !== null) {
-                $github_release_info = $this->get_github_release_info($plugin);
-                $download_url = $this->get_github_plugin_zip_download_url($this->get_github_release_info($plugin), $plugin);
-                $md5_hash = $this->get_github_plugin_zip_md5_hash($github_release_info, $plugin);
-            } else {
-                // is package repo
-                $download_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
-                $md5_file_content = file_get_contents("{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5");
-                if ($md5_file_content === false) {
-                    throw new moodle_exception('Failed to get md5 hash');
-                }
-                $md5_hash = explode(' ', $md5_file_content)[0];
+            $download_url = "{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip";
+            $md5_file_content = file_get_contents("{$plugin->package_repo}/{$plugin->moodle_name}/{$plugin->version}.zip.md5");
+            if ($md5_file_content === false) {
+                throw new moodle_exception('Failed to get md5 hash');
+            }
+            $md5_hash = explode(' ', $md5_file_content)[0];
+
+            cli_writeln("[DEBUG]: md5 hash: $md5_hash");
+            if (!preg_match('/^[a-fA-F0-9]{32}$/', $md5_hash)) {
+                throw new moodle_exception('Invalid MD5 hash');
             }
 
             $raw_plugin_info_version = new stdClass();
@@ -139,7 +121,11 @@ class install_plugins extends base_play {
             $raw_plugin_info_version->vcstag = null;
             $raw_plugin_info_version->supportedmoodles = null;
 
-            $plugin_infos[] = api::client()->validate_pluginfo_format($raw_plugin_info_root);
+            $new_plugin_info = api::client()->validate_pluginfo_format($raw_plugin_info_root);
+            if ($new_plugin_info === false) {
+                throw new moodle_exception('failed to validate plugin info');
+            }
+            $plugin_infos[] = $new_plugin_info;
         }
 
         if (count($plugin_infos) > 0) {
@@ -153,55 +139,6 @@ class install_plugins extends base_play {
             cli_writeln('[INFO] No plugins to update');
         }
     }
-
-    /**
-     * @throws ddl_exception
-     */
-    private function get_github_release_info(install_plugins_model $plugin): stdClass {
-        $request_url = "{$this->github_api_url}/repos/{$plugin->github_project}/releases/tags/{$plugin->version}";
-        $response = file_get_contents($request_url, context: $this->github_request_context);
-        if ($response === false) {
-            throw new ddl_exception('failed to get release info');
-        }
-
-        $response = json_decode($response);
-        if ($response === null || !property_exists($response, 'assets')) {
-            throw new ddl_exception('failed to get release info');
-        }
-
-        return $response;
-    }
-
-    /**
-     * Downloads the md5 hash file for the zip and returns the file content.
-     *
-     * @throws moodle_exception
-     */
-    private function get_github_plugin_zip_md5_hash(stdClass $github_release_info, install_plugins_model $plugin): string {
-        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip.md5";
-        foreach ($github_release_info->assets as $asset) {
-            if ($asset->name === $asset_name) {
-                $md5_url = $asset->url;
-                $md5sum_file = file_get_contents($md5_url, context: $this->github_request_context);
-                return explode(' ', $md5sum_file)[0];
-            }
-        }
-        throw new moodle_exception('MD5 hash file not found');
-    }
-
-    /**
-     * @throws moodle_exception
-     */
-    private function get_github_plugin_zip_download_url(stdClass $github_release_info, install_plugins_model $plugin): string {
-        $asset_name = "moodle-{$plugin->moodle_name}-{$plugin->version}.zip";
-        foreach ($github_release_info->assets as $asset) {
-            if ($asset->name === $asset_name) {
-                return $asset->url;
-            }
-        }
-        throw new moodle_exception('Zip file not found');
-    }
-
 
     /**
      * @throws downgrade_exception If a plugin downgrade is attempted
@@ -229,10 +166,13 @@ class install_plugins extends base_play {
     private function moodle_plugin_upgrade(): void {
         global $CFG;
 
-        // it was trial and error that showed it is required to delete these two caches. Otherwise, plugins will be stuck in "To be installed" state
+        // it was trial and error that showed it is required to delete these two caches. Otherwise, plugins will be
+        // stuck in "To be installed" state. This issues seems to only occur on production moodle installations.
+        // I could not reproduce it in a test environment.
         purge_other_caches();
         // have to reset cached plugin list, otherwise the new plugin is not recognized
         core_component::reset();
+//        plugin_manager::instance()->get_plugin_info('local_testplugin')->get_status();
 
         // this checks for moodle dependencies and so on. I don't think it is necessary for the plugin installation,
         // but I am not sure, and it does not hurt to call it.

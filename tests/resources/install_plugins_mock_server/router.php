@@ -1,10 +1,6 @@
 <?php
 
 $files = [
-    'moodle-local_testplugin-0.1.0.zip',
-    'moodle-local_testplugin-0.1.1.zip',
-    'moodle-local_testplugin-0.1.0.zip.md5',
-    'moodle-local_testplugin-0.1.1.zip.md5',
     'local_testplugin/0.1.0.zip',
     'local_testplugin/0.1.0.zip.md5',
     'local_testplugin/0.1.1.zip',
