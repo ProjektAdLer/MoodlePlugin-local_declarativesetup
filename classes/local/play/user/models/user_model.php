@@ -13,7 +13,7 @@ class user_model {
      * @param bool $present true: user should be present (create/update), false: user should be absent (delete)
      * @param array $system_roles
      * @param bool $append_roles if true, roles will be added to existing roles, if false, existing roles will be replaced
-     * @param string $langauge
+     * @param string $language
      * @param string|null $firstname
      * @param string|null $lastname
      * @param string|null $email
@@ -25,7 +25,7 @@ class user_model {
                                 public bool   $present = true,
                                 public array  $system_roles = [],
                                 public bool   $append_roles = true,
-                                public string $langauge = 'en',
+                                public string $language = 'en',
                                 string|null   $firstname = null,
                                 string|null   $lastname = null,
                                 string|null   $email = null,

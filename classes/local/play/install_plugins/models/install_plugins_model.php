@@ -2,9 +2,6 @@
 
 namespace local_declarativesetup\local\play\install_plugins\models;
 
-// TODO: do this refactoring for all models. also update docs
-use invalid_parameter_exception;
-
 class install_plugins_model {
     /**
      * @param string $version The release version or branch of the plugin to install (e.g. "1.0.0" or "main")

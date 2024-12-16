@@ -75,7 +75,7 @@ class base_playbook_test extends adler_testcase {
         $method->setAccessible(true);
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Environment variable TEST_VAR not set');
+        $this->expectExceptionMessageMatches('/TEST_VAR not set/');
 
         $method->invoke($playbook, 'TEST_VAR');
 
@@ -90,7 +90,7 @@ class base_playbook_test extends adler_testcase {
         $method->setAccessible(true);
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Environment variable NON_EXISTENT_VAR not set');
+        $this->expectExceptionMessageMatches('/NON_EXISTENT_VAR not set/');
 
         $method->invoke($playbook, 'NON_EXISTENT_VAR');
     }

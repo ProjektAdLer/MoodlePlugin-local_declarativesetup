@@ -1,11 +1,11 @@
 # Declarative setup #
 
-TODO Describe the plugin shortly here.
+Allows to configure moodle in a declarative way, similar to Ansible.
 
-TODO Provide more detailed description here.
+## Usage ##
+`config.php` has to be writeable for some plays to work. 
 
-# Requirements (TODO)
-- Allow providing GitHub authentication
+See [Playbook README.md](playbook/README.md) for more information on how to use this plugin.
 
 ## Installing via uploaded ZIP file ##
 
