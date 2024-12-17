@@ -1,47 +1,40 @@
 # Declarative setup #
 
-Allows to configure moodle in a declarative way, similar to Ansible.
+# Deklarative Einrichtung #
 
-## Usage ##
-`config.php` has to be writeable for some plays to work. 
+Ermöglicht die Konfiguration von Moodle auf deklarative Weise, ähnlich wie Ansible.
 
-See [Playbook README.md](playbook/README.md) for more information on how to use this plugin.
+## Kompabilität
+Folgende Versionen werden unterstützt (mit mariadb und postresql getestet):
 
-## Installing via uploaded ZIP file ##
+siehe [plugin_compatibility.json](plugin_compatibility.json)
 
-1. Log in to your Moodle site as an admin and go to _Site administration >
-   Plugins > Install plugins_.
-2. Upload the ZIP file with the plugin code. You should only be prompted to add
-   extra details if your plugin type is not automatically detected.
-3. Check the plugin validation report and finish the installation.
+## Verwendung ##
+`config.php` muss schreibbar sein, damit einige Plays funktionieren.
 
-## Installing manually ##
+Siehe [Playbook README.md](playbook/README.md) für weitere Informationen zur Nutzung dieses Plugins.
 
-The plugin can be also installed by putting the contents of this directory to
+## Installation über hochgeladene ZIP-Datei ##
+
+1. Melden Sie sich als Administrator auf Ihrer Moodle-Seite an und gehen Sie zu
+   _Website-Administration > Plugins > Plugins installieren_.
+2. Laden Sie die ZIP-Datei mit dem Plugin-Code hoch. Zusätzliche Angaben sollten
+   nur erforderlich sein, wenn der Plugin-Typ nicht automatisch erkannt wird.
+3. Überprüfen Sie den Plugin-Validierungsbericht und schließen Sie die Installation ab.
+
+## Manuelle Installation ##
+
+Das Plugin kann auch installiert werden, indem der Inhalt dieses Verzeichnisses in
 
     {your/moodle/dirroot}/local/declarativesetup
 
-Afterwards, log in to your Moodle site as an admin and go to _Site administration >
-Notifications_ to complete the installation.
+kopiert wird.
 
-Alternatively, you can run
+Danach melden Sie sich als Administrator auf Ihrer Moodle-Seite an und gehen Sie zu
+_Website-Administration > Mitteilungen_, um die Installation abzuschließen.
+
+Alternativ können Sie den folgenden Befehl ausführen:
 
     $ php admin/cli/upgrade.php
 
-to complete the installation from the command line.
-
-## License ##
-
-2024 Markus Heck (Projekt Adler) <markus.heck@hs-kempten.de>
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with
-this program.  If not, see <https://www.gnu.org/licenses/>.
+um die Installation über die Kommandozeile abzuschließen.
