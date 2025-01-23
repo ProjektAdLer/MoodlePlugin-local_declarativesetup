@@ -12,12 +12,20 @@ abstract class base_playbook {
 
     /**
      * Run the playbook
+     * @throws Exception
      */
     final public function run(): void {
         try {
             $this->playbook_implementation();
         } catch (Exception $e) {
-            $this->failed($e);
+            cli_writeln("Execution of play failed: " . $e->getMessage());
+            cli_writeln($e->getTraceAsString());
+            cli_writeln("Aborting playbook execution, continuing with playbook failed handler");
+            try {
+                $this->failed($e);
+            } catch (Exception $e) {
+                cli_writeln("Execution of \"failed\" handler failed: " . $e->getMessage());
+            }
             throw $e;
         }
     }

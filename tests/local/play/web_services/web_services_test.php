@@ -422,12 +422,12 @@ EOD;
      */
     public function test_enable_mobile_service(int $initally_enabled, int $desired_enabled) {
         global $DB;
-        $mobile_serve_id = $DB->get_record('external_services', ['shortname' => 'moodle_mobile_app'], '*', MUST_EXIST)->id;
+        $mobile_service_id = $DB->get_record('external_services', ['shortname' => MOODLE_OFFICIAL_MOBILE_SERVICE], '*', MUST_EXIST)->id;
         if ($initally_enabled === web_services_model::STATE_ENABLED) {
-            $DB->update_record('external_services', (object)['id' => $mobile_serve_id, 'enabled' => 1]);
+            $DB->update_record('external_services', (object)['id' => $mobile_service_id, 'enabled' => 1]);
         }
         if ($initally_enabled === web_services_model::STATE_DISABLED || $initally_enabled === web_services_model::STATE_UNSET) {
-            $DB->update_record('external_services', (object)['id' => $mobile_serve_id, 'enabled' => 0]);
+            $DB->update_record('external_services', (object)['id' => $mobile_service_id, 'enabled' => 0]);
         }
 
         $capturedData = $this->get_sample_config_php();
@@ -458,10 +458,10 @@ EOD;
         }
 
         if ($desired_enabled === web_services_model::STATE_ENABLED) {
-            $this->assertEquals('1', $DB->get_record('external_services', ['id' => $mobile_serve_id])->enabled);
+            $this->assertEquals('1', $DB->get_record('external_services', ['id' => $mobile_service_id])->enabled);
         }
         if ($desired_enabled === web_services_model::STATE_DISABLED) {
-            $this->assertEquals('0', $DB->get_record('external_services', ['id' => $mobile_serve_id])->enabled);
+            $this->assertEquals('0', $DB->get_record('external_services', ['id' => $mobile_service_id])->enabled);
         }
     }
 }
