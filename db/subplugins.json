@@ -1,4 +1,7 @@
 {
+  "subplugintypes": {
+    "playbook": "playbook"
+  },
   "plugintypes": {
     "playbook": "local/declarativesetup/playbook"
   }
