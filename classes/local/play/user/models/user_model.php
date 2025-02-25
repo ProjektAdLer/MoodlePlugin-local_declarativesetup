@@ -10,7 +10,9 @@ class user_model {
     /**
      * @param string $username login name, lowercase, no spaces
      * @param string $password
-     * @param bool $present true: user should be present (create/update), false: user should be absent (delete)
+     * @param bool $present true: user should be present (create/update),
+     * false: user should be absent (delete)
+     * Note: if user will be deleted, no courses will be deleted.
      * @param array $system_roles
      * @param bool $append_roles if true, roles will be added to existing roles, if false, existing roles will be replaced
      * @param string $language
