@@ -299,4 +299,19 @@ class course_category_path_test extends adler_testcase {
         $ccp->delete();
         $this->assertFalse($ccp->exists());
     }
+
+    public function test_multiple_with_same_base_category() {
+        $sub_category_1_path = new course_category_path('testcategory/subcategory1');
+        $sub_category_2_path = new course_category_path('testcategory/subcategory2');
+
+        // create categories
+        $sub_category_1_path->create();
+        $sub_category_2_path->create();
+
+        // check only one instance of base category exists
+        $all_categories = core_course_category::make_categories_list();
+        $this->assertEquals(1, count(array_filter($all_categories, function($category) {
+            return $category == 'testcategory';
+        })));
+    }
 }

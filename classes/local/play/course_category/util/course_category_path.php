@@ -65,13 +65,20 @@ class course_category_path implements Countable {
         }
 
         $current_category_id = 0;  // top level category
+        $current_category_path = '';
 
         foreach ($this->get_path() as $category_path_part) {
-            $current_category_id = core_course_category::create([
-                'name' => $category_path_part,
-                'parent' => $current_category_id,
-                'visible' => 1,
-            ])->id;
+            $current_category_path .= ' / ' . $category_path_part;
+            $current_category_path_obj = new course_category_path($current_category_path);
+            if ($current_category_path_obj->exists()) {
+                $current_category_id = $current_category_path_obj->get_category_id();
+            } else {
+                $current_category_id = core_course_category::create([
+                    'name' => $category_path_part,
+                    'parent' => $current_category_id,
+                    'visible' => 1,
+                ])->id;
+            }
         }
 
         return $current_category_id;

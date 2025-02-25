@@ -5,6 +5,7 @@ namespace local_declarativesetup\local\play\course_category;
 global $CFG;
 
 use context_coursecat;
+use core_course_category;
 use invalid_parameter_exception;
 use local_declarativesetup\lib\adler_testcase;
 use local_declarativesetup\local\play\course_category\models\course_category_model;
@@ -26,6 +27,41 @@ class course_category_test extends adler_testcase {
         $this->assertTrue($changed);
         $this->assertTrue($category_path->exists());
         $this->assertNotEmpty($category_path->get_moodle_category_object()->description);
+    }
+
+    public function test_course_category_same_base_category() {
+        $base_category_path = new course_category_path('testcategory');
+        $this->assertFalse($base_category_path->exists());
+        $sub_category_1_path = new course_category_path('testcategory/subcategory1');
+        $this->assertFalse($sub_category_1_path->exists());
+        $sub_category_2_path = new course_category_path('testcategory/subcategory2');
+        $this->assertFalse($sub_category_2_path->exists());
+
+        // create first subcategory
+        $play = new course_category(new course_category_model(
+            'testcategory/subcategory1',
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertTrue($sub_category_1_path->exists());
+        $this->assertTrue($base_category_path->exists());
+
+        // create second subcategory
+        $play = new course_category(new course_category_model(
+            'testcategory/subcategory2',
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertTrue($sub_category_2_path->exists());
+        $this->assertTrue($base_category_path->exists());
+
+        // check only one instance of base category exists
+        $all_categories = core_course_category::make_categories_list();
+        $this->assertEquals(1, count(array_filter($all_categories, function($category) {
+            return $category == 'testcategory';
+        })));
     }
 
     public function test_course_category_basic_empty_description() {
