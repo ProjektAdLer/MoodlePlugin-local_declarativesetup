@@ -5,6 +5,8 @@ namespace local_declarativesetup\local\play\course_category\util;
 use core_course_category;
 use Countable;
 use invalid_parameter_exception;
+use local_declarativesetup\local\play\course_category\exceptions\course_exists_exception;
+use local_declarativesetup\local\play\course_category\exceptions\subcategory_exists_exception;
 use moodle_exception;
 
 class course_category_path implements Countable {
@@ -85,10 +87,47 @@ class course_category_path implements Countable {
     }
 
     /**
+     * @param bool $delete_if_subcategories_exist If true, the category and all its subcategories will be deleted. If false, the category will only be deleted if it has no subcategories.
+     * @param int|string $handle_courses If 'dont delete': fails if there are any courses in this or subcategories. If 'delete': deletes all courses in this or subcategories. If int: moves all courses in this or subcategories to the category with this ID.
+     * @throws course_exists_exception
+     * @throws subcategory_exists_exception
      * @throws moodle_exception
      */
-    public function delete(): void {
-        $this->get_moodle_category_object()->delete_full();
+    public function delete(bool $delete_if_subcategories_exist = false, int|string $handle_courses = 'dont delete'): void {
+        if (count($this->get_moodle_category_object()->get_all_children_ids()) > 0 && !$delete_if_subcategories_exist) {
+            throw new subcategory_exists_exception();
+        }
+
+        if ($this->contains_courses() && $handle_courses === 'dont delete') {
+            throw new course_exists_exception();
+        }
+
+
+        if (is_int($handle_courses)) {
+            $categoryids = array_merge([$this->get_category_id()], $this->get_moodle_category_object()->get_all_children_ids());
+            foreach ($categoryids as $categoryid) {
+                $category = core_course_category::get($categoryid);
+                $category->delete_move($handle_courses);
+            }
+        } else {
+            $this->get_moodle_category_object()->delete_full();
+        }
+    }
+
+    /**
+     * @throws moodle_exception
+     */
+    private
+    function contains_courses(): bool {
+        $categoryids = array_merge([$this->get_category_id()], $this->get_moodle_category_object()->get_all_children_ids());
+
+        foreach ($categoryids as $categoryid) {
+            $category = core_course_category::get($categoryid);
+            if (count($category->get_courses()) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

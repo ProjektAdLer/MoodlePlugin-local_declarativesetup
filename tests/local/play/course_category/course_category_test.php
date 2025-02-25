@@ -8,6 +8,8 @@ use context_coursecat;
 use core_course_category;
 use invalid_parameter_exception;
 use local_declarativesetup\lib\adler_testcase;
+use local_declarativesetup\local\play\course_category\exceptions\course_exists_exception;
+use local_declarativesetup\local\play\course_category\exceptions\subcategory_exists_exception;
 use local_declarativesetup\local\play\course_category\models\course_category_model;
 use local_declarativesetup\local\play\course_category\models\role_user_model;
 use local_declarativesetup\local\play\course_category\util\course_category_path;
@@ -204,6 +206,68 @@ class course_category_test extends adler_testcase {
 
         $this->assertTrue($changed);
         $this->assertFalse($course_category_path->exists());
+    }
+
+    public function test_delete_subcategory_force() {
+        $ccp = new course_category_path('testcategory/subcategory');
+        $ccp->create();
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+            false,
+            force_delete: true
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertFalse($ccp->exists());
+    }
+
+    public function test_delete_subcategory_no_force() {
+        $ccp = new course_category_path('testcategory/subcategory');
+        $ccp->create();
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+            false,
+            force_delete: false
+        ));
+        $this->expectException(subcategory_exists_exception::class);
+        $play->play();
+    }
+
+    public function test_delete_with_course_force() {
+        $ccp = new course_category_path('testcategory');
+        $ccp->create();
+        $this->getDataGenerator()->create_course([
+            'category' => $ccp->get_moodle_category_object()->id,
+        ]);
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+            false,
+            force_delete: true
+        ));
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertFalse($ccp->exists());
+    }
+
+    public function test_delete_with_course_no_force() {
+        $ccp = new course_category_path('testcategory');
+        $ccp->create();
+        $this->getDataGenerator()->create_course([
+            'category' => $ccp->get_moodle_category_object()->id,
+        ]);
+
+        $play = new course_category(new course_category_model(
+            'testcategory',
+            false,
+            force_delete: false
+        ));
+        $this->expectException(course_exists_exception::class);
+        $play->play();
     }
 
 

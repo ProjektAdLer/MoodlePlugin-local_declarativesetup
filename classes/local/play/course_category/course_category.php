@@ -9,6 +9,8 @@ use dml_exception;
 use invalid_parameter_exception;
 use local_declarativesetup\local\moodle_core;
 use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\course_category\exceptions\course_exists_exception;
+use local_declarativesetup\local\play\course_category\exceptions\subcategory_exists_exception;
 use local_declarativesetup\local\play\course_category\models\course_category_model;
 use moodle_exception;
 
@@ -29,19 +31,28 @@ class course_category extends base_play {
     }
 
     /**
-     * @throws moodle_exception
+     * @return bool
+     * @throws coding_exception
+     * @throws course_exists_exception
+     * @throws dml_exception
      * @throws invalid_parameter_exception
+     * @throws moodle_exception
+     * @throws subcategory_exists_exception
      */
     protected function play_implementation(): bool {
         $state_changed = false;
 
         if ($this->input->present && !$this->input->course_category_path->exists()) {
-            // create if not exists but should
+            // create: not exists but should
             $this->input->course_category_path->create();
             $state_changed = true;
         } else if (!$this->input->present && $this->input->course_category_path->exists()) {
-            // delete if exists but should not
-            $this->input->course_category_path->delete();
+            // delete: exists but should not
+            if ($this->input->force_delete) {
+                $this->input->course_category_path->delete(true, 'delete');
+            } else {
+                $this->input->course_category_path->delete(false, 'dont delete');
+            }
             return true;
         }
 
