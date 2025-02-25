@@ -21,7 +21,7 @@ class web_services_model_test extends adler_testcase {
         new web_services_model(web_services_model::STATE_UNSET, [], [], 2);
     }
 
-    public function provide_procotol_validation_data() {
+    public static function provide_procotol_validation_data() {
         return [
             'valid' => [
                 'enable_list' => ['rest'],

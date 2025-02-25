@@ -118,7 +118,7 @@ EOD;
         $config_manager->get_setting_value('dbtype');
     }
 
-    public function provide_test_setting_exists(): array {
+    public static function provide_test_setting_exists(): array {
         return [
             ['dbtype', null, true],
             ['dbtype', 'local_example', false],
@@ -185,7 +185,7 @@ EOD;
     }
 
 
-    public function provide_test_add_setting(): array {
+    public static function provide_test_add_setting(): array {
         return [
             'string setting' => ['newsetting', 'newvalue', '$CFG->newsetting = \'newvalue\';'],
             'boolean setting' => ['boolsetting', true, '$CFG->boolsetting = true;'],

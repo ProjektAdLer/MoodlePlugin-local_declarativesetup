@@ -19,7 +19,7 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
         new create_course_cat_and_assign_user_role('username', 'role', 'category_path');
     }
 
-    public function provide_create_instance_invalid_data() {
+    public static function provide_create_instance_invalid_data() {
         return [
             'empty username' => [
                 'username' => '',

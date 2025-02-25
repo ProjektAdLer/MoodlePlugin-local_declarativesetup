@@ -99,7 +99,7 @@ class user_test extends adler_testcase {
         $this->assertTrue(validate_internal_user_password($existing_user, 'newpassword'));
     }
 
-    public function provide_test_update_roles_data(): array {
+    public static function provide_test_update_roles_data(): array {
         return [
             'append' => ['append_roles' => true],
             'replace' => ['append_roles' => false]
@@ -148,7 +148,7 @@ class user_test extends adler_testcase {
         $this->assertEmpty($roles);
     }
 
-    public function provide_test_delete_user_data(): array {
+    public static function provide_test_delete_user_data(): array {
         return [
             'existing user' => ['testuser'],
             'non existing user' => ['nonexistinguser']

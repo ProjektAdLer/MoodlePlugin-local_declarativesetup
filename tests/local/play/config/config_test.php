@@ -24,7 +24,7 @@ require_once(__DIR__ . '/lib/setup.php'); // Do not edit
 EOD;
     }
 
-    public function provide_test_add_soft_setting() {
+    public static function provide_test_add_soft_setting() {
         return [
             'array' => [
                 'array' => true,
@@ -35,7 +35,7 @@ EOD;
         ];
     }
 
-    public function provide_data_of_different_types() {
+    public static function provide_data_of_different_types() {
         return [
             'string soft' => [
                 'value' => 'somevalue',
@@ -187,7 +187,7 @@ EOD;
         $this->assertStringContainsString('$CFG->forced_config = \'someothervalue\';', $capturedData);
     }
 
-    public function provide_state_change_data() {
+    public static function provide_state_change_data() {
         return [
             'same value' => [
                 'same_value' => true,
@@ -303,7 +303,7 @@ EOD;
         $this->assertStringNotContainsString('$CFG->forced_config', $capturedData);
     }
 
-    public function provide_test_no_change_data() {
+    public static function provide_test_no_change_data() {
         return [
             'current: soft, new: equal' => [
                 'current' => 'soft',

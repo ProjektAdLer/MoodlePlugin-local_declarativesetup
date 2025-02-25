@@ -198,7 +198,7 @@ EOD;
         $this->assertFalse($config_manager->setting_exists('testsetting', null));
     }
 
-    public function provide_data_of_different_types() {
+    public static function provide_data_of_different_types() {
         return [
             'string soft' => [
                 'value' => 'somevalue',

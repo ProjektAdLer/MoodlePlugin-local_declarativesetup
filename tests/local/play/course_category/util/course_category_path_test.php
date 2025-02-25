@@ -303,7 +303,7 @@ class course_category_path_test extends adler_testcase {
         $this->assertFalse($ccp->exists());
     }
 
-    public function provide_delete_with_course_in_category(): array {
+    public static function provide_delete_with_course_in_category(): array {
         return [
             'course delete' => ['course_mode' => 'delete'],
             'course move' => ['course_mode' => 'move'],

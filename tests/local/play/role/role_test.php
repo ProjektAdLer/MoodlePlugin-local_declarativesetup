@@ -66,7 +66,7 @@ class role_test extends adler_testcase {
         $this->assertArrayNotHasKey('moodle/question:add', $play->get_output()['test_role']->list_of_capabilities);
     }
 
-    public function provide_replace_capabilities_true_false_data() {
+    public static function provide_replace_capabilities_true_false_data() {
         return [
             'add' => [
                 'replace_capabilities' => false,

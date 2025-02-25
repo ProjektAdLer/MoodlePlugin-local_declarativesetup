@@ -318,7 +318,7 @@ EOD;
         $this->assertStringNotContainsString('soap', get_config('', 'webserviceprotocols'));
     }
 
-    public function provide_update_setting_data(): array {
+    public static function provide_update_setting_data(): array {
         return [
             'enable -> enable' => [
                 'initally_enabled' => web_services_model::STATE_ENABLED,

@@ -20,7 +20,7 @@ class role_model_test extends adler_testcase {
         $this->assertEquals('test_role', $role->role_name);
     }
 
-    public function provide_test_type_validation_capabilities_data() {
+    public static function provide_test_type_validation_capabilities_data() {
         return [
             'invalid_capabilities' => [['invalid_capabilities']],
             'invalid_capability_name' => [[7 => CAP_ALLOW]],

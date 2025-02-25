@@ -9,7 +9,7 @@ use local_declarativesetup\local\exceptions\exit_exception;
 require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class create_course_cat_and_assign_user_role_test extends adler_testcase {
-    public function provide_test_call_data() {
+    public static function provide_test_call_data() {
         return [
             [
                 'username_input' => 'username',
