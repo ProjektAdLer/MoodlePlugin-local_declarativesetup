@@ -6,7 +6,7 @@ global $CFG;
 
 use local_declarativesetup\lib\adler_testcase;
 use local_declarativesetup\local\play\config\config;
-use local_declarativesetup\local\play\config\models\config_model;
+use local_declarativesetup\local\play\config\models\simple_config_model;
 use local_declarativesetup\local\play\role\models\role_model;
 use local_declarativesetup\local\play\role\role;
 use local_declarativesetup\local\play\user\models\user_model;
@@ -31,8 +31,8 @@ class playbook_test extends adler_testcase {
         $call_count_role_play = 0;
         $call_count_user_play = 0;
 
-        // Mock the config_model class
-        $configModelMock = Mockery::mock('overload:' . config_model::class);
+        // Mock the simple_config_model class
+        $configModelMock = Mockery::mock('overload:' . simple_config_model::class);
         $configModelMock->shouldReceive('__construct')->andReturnUsing(function () use (&$call_count_config_model_construct) {
             $call_count_config_model_construct++;
             return (object)[]; // Simulate returning an object
