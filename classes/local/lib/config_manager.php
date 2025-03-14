@@ -106,6 +106,20 @@ class config_manager {
     }
 
     /**
+     * Returns the value of a config setting as an array. Does not verify if a setting is of type array.
+     * See {@link get_value()} for more information.
+     *
+     * @throws setting_exists_multiple_times
+     * @throws setting_unable_to_extract_value
+     * @throws setting_does_not_exist
+     * @throws moodle_exception
+     * @return string[]
+     */
+    public function get_array_values(string $config_name, string|null $plugin = null): array {
+        return explode(',', $this->get_value($config_name, $plugin));
+    }
+
+    /**
      * See {@link get_value()} on how this works.
      *
      * @throws moodle_exception
