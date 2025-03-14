@@ -29,3 +29,4 @@ $string['pluginname'] = 'Declarative setup';
 $string['subplugintype_playbook'] = 'Playbook';
 $string['subplugintype_playbook_plural'] = 'Playbooks';
 $string['error_playbooknotfound'] = 'The specified playbook "{$a}" was not found.';
+$string['privacy:metadata'] = 'The Declarative setup plugin does not store any data.';

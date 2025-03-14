@@ -26,3 +26,4 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Example playbook';
+$string['privacy:metadata'] = 'The example playbook plugin does not store any data.';
