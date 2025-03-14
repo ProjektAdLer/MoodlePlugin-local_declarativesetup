@@ -7,7 +7,8 @@ global $CFG;
 use core\di;
 use local_declarativesetup\lib\adler_testcase;
 use local_declarativesetup\local\php;
-use local_declarativesetup\local\play\config\models\config_model;
+use local_declarativesetup\local\play\config\models\array_config_model;
+use local_declarativesetup\local\play\config\models\simple_config_model;
 use Mockery;
 
 require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
@@ -84,7 +85,7 @@ EOD;
         di::set(php::class, $php_mock);
 
         $play = new config([
-            new config_model('new_config', $value, forced: !$soft),
+            new simple_config_model('new_config', $value, forced: !$soft),
         ]);
         $changed = $play->play();
 
@@ -112,9 +113,9 @@ EOD;
         $this->assertFalse(get_config('', 'soft_config'));
 
         if ($array) {
-            $play = new config([new config_model('soft_config', 'somevalue')]);
+            $play = new config([new simple_config_model('soft_config', 'somevalue')]);
         } else {
-            $play = new config(new config_model('soft_config', 'somevalue'));
+            $play = new config(new simple_config_model('soft_config', 'somevalue'));
         }
 
         $changed = $play->play();
@@ -136,7 +137,7 @@ EOD;
         di::set(php::class, $php_mock);
 
         $play = new config([
-            new config_model('new_forced_config', 'somevalue', true),
+            new simple_config_model('new_forced_config', 'somevalue', true),
         ]);
 
         $changed = $play->play();
@@ -156,7 +157,7 @@ EOD;
         set_config('soft_config', 'somevalue');
 
         $play = new config([
-            new config_model('soft_config', 'someothervalue'),
+            new simple_config_model('soft_config', 'someothervalue'),
         ]);
 
         $changed = $play->play();
@@ -178,7 +179,7 @@ EOD;
         di::set(php::class, $php_mock);
 
         $play = new config([
-            new config_model('forced_config', 'someothervalue', true),
+            new simple_config_model('forced_config', 'someothervalue', true),
         ]);
 
         $changed = $play->play();
@@ -214,7 +215,7 @@ EOD;
         di::set(php::class, $php_mock);
 
         $play = new config([
-            new config_model(
+            new simple_config_model(
                 'forced_config'
                 , $same_value ? 'somevalue' : 'someothervalue'
             ),
@@ -247,7 +248,7 @@ EOD;
         set_config('soft_config', 'somevalue');
 
         $play = new config([
-            new config_model(
+            new simple_config_model(
                 'soft_config'
                 , $same_value ? 'somevalue' : 'someothervalue'
                 , true
@@ -271,7 +272,7 @@ EOD;
         set_config('soft_config', 'somevalue');
 
         $play = new config([
-            new config_model('soft_config', null),
+            new simple_config_model('soft_config', null),
         ]);
 
         $changed = $play->play();
@@ -294,7 +295,7 @@ EOD;
         set_config('forced_config', 'somevalue');
 
         $play = new config([
-            new config_model('forced_config', null, true),
+            new simple_config_model('forced_config', null, true),
         ]);
 
         $changed = $play->play();
@@ -344,9 +345,9 @@ EOD;
 
         $config_models = [];
         if ($current === 'soft' && $new_is === 'equal') {
-            $config_models[] = new config_model('soft_config', 'somevalue');
+            $config_models[] = new simple_config_model('soft_config', 'somevalue');
         } else if ($current === 'forced' && $new_is === 'equal') {
-            $config_models[] = new config_model('forced_config', 'somevalue', true);
+            $config_models[] = new simple_config_model('forced_config', 'somevalue', true);
         }
         $play = new config($config_models);
 
@@ -354,5 +355,247 @@ EOD;
 
         $this->assertFalse($changed);
         $this->assertEquals('somevalue', get_config('', 'soft_config'));
+    }
+
+    public function test_array_config_add_forced() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        // For forced config, file_put_contents should be called
+        $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+            $capturedData = $data; // Store the written data
+            return true;
+        });
+        di::set(php::class, $php_mock);
+
+        // Make sure the setting doesn't exist initially
+        $this->assertFalse(get_config('', 'new_array_config'));
+
+        $play = new config([
+            new array_config_model(
+                'new_array_config',
+                values_present: ['value1', 'value4'],
+                values_absent: [],
+                forced: true
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        // Check that it was added to config.php
+        $this->assertStringContainsString('$CFG->new_array_config = \'value1,value4\';', $capturedData);
+    }
+
+    public function test_array_config_add_soft() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        // No file_put_contents should be called for soft config
+        $php_mock->shouldNotReceive('file_put_contents');
+        di::set(php::class, $php_mock);
+
+        $play = new config([
+            new array_config_model(
+                'new_array_config',
+                values_present: ['value1', 'value4'],
+                values_absent: [],
+                forced: false
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        // Check that it was added as a soft config (to the database)
+        $this->assertEquals('value1,value4', get_config('', 'new_array_config'));
+        // Verify it was not added to config.php
+        $this->assertStringNotContainsString('$CFG->new_array_config', $capturedData);
+    }
+
+    public function test_array_config_forced_with_wildcard() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+
+        // Should modify the config.php file with the new configuration
+        $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+            $capturedData = $data; // Store the written data
+            return true;
+        });
+
+        di::set(php::class, $php_mock);
+
+        // Set initial array value
+        set_config('array_config', 'value1,value2,value3');
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value4'],
+                values_absent: ['*'],
+                forced: true
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertStringContainsString('$CFG->array_config = \'value1,value4\';', $capturedData);
+    }
+
+    public function test_array_config_soft_with_wildcard() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        $php_mock->shouldNotReceive('file_put_contents');
+        di::set(php::class, $php_mock);
+
+        // Set initial array value
+        set_config('array_config', 'value1,value2,value3');
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value4'],
+                values_absent: ['*'],
+                forced: false
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertEquals('value1,value4', get_config('', 'array_config'));
+    }
+
+    public function test_array_config_soft_no_change() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        $php_mock->shouldNotReceive('file_put_contents');
+        di::set(php::class, $php_mock);
+
+        // Set initial array value
+        set_config('array_config', 'value1,value2');
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value2'],
+                values_absent: [],
+                forced: false
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertFalse($changed);
+        $this->assertEquals('value1,value2', get_config('', 'array_config'));
+    }
+
+    public function test_array_config_forced_no_change() {
+        $php_mock = Mockery::mock(php::class);
+
+        // Create config.php with the forced array config already present
+        $initialConfig = $this->get_sample_config_php() . "\n\$CFG->array_config = 'value1,value2';";
+        $capturedData = $initialConfig;
+
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+
+        // Should not modify the config.php file since no changes are needed
+        $php_mock->shouldNotReceive('file_put_contents');
+
+        di::set(php::class, $php_mock);
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value2'],
+                values_absent: [],
+                forced: true
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertFalse($changed);
+        $this->assertStringContainsString('$CFG->array_config = \'value1,value2\';', $capturedData);
+    }
+
+    public function test_array_config_change_to_forced_state() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php(); // Initial content
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+        $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+            $capturedData = $data; // Store the written data
+            return true;
+        });
+        di::set(php::class, $php_mock);
+
+        // Set initial array value as soft config
+        set_config('array_config', 'value1,value2');
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value2'],
+                values_absent: [],
+                forced: true
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertStringContainsString('$CFG->array_config = \'value1,value2\';', $capturedData);
+    }
+
+    public function test_array_config_change_to_soft_state() {
+        $php_mock = Mockery::mock(php::class);
+
+        // Create config.php with the forced array config already present
+        $initialConfig = $this->get_sample_config_php() . "\n\$CFG->array_config = 'value1,value2';";
+        $capturedData = $initialConfig;
+
+        $php_mock->shouldReceive('file_get_contents')->atLeast()->once()->andReturnUsing(function () use (&$capturedData) {
+            return $capturedData;
+        });
+
+        $php_mock->shouldReceive('file_put_contents')->once()->withArgs(function ($filename, $data) use (&$capturedData) {
+            $capturedData = $data; // Store the written data
+            return true;
+        });
+
+        di::set(php::class, $php_mock);
+
+        $play = new config([
+            new array_config_model(
+                'array_config',
+                values_present: ['value1', 'value2'],
+                values_absent: [],
+                forced: false
+            ),
+        ]);
+
+        $changed = $play->play();
+
+        $this->assertTrue($changed);
+        $this->assertStringNotContainsString('$CFG->array_config', $capturedData);
+        $this->assertEquals('value1,value2', get_config('', 'array_config'));
     }
 }

@@ -4,13 +4,16 @@ namespace local_declarativesetup\local\play\web_services;
 
 use core\di;
 use dml_exception;
+use invalid_parameter_exception;
 use local_declarativesetup\local\db\moodle_external_services_repository;
 use local_declarativesetup\local\exceptions\setting_does_not_exist;
 use local_declarativesetup\local\exceptions\setting_exists_multiple_times;
-use local_declarativesetup\local\exceptions\setting_is_forced;
 use local_declarativesetup\local\exceptions\setting_unable_to_extract_value;
 use local_declarativesetup\local\lib\config_manager;
 use local_declarativesetup\local\play\base_play;
+use local_declarativesetup\local\play\config\config;
+use local_declarativesetup\local\play\config\models\array_config_model;
+use local_declarativesetup\local\play\exceptions\play_was_already_played_exception;
 use local_declarativesetup\local\play\web_services\models\web_services_model;
 use moodle_exception;
 
@@ -60,47 +63,18 @@ class web_services extends base_play {
     }
 
     /**
-     * @throws setting_is_forced
-     * @throws setting_exists_multiple_times
-     * @throws dml_exception
-     * @throws setting_unable_to_extract_value
-     * @throws setting_does_not_exist
-     * @throws moodle_exception
+     * @throws invalid_parameter_exception
+     * @throws play_was_already_played_exception
      */
     private function update_protocols(): bool {
-        $state_changed = false;
+        $config_model = new array_config_model(
+            'webserviceprotocols',
+            $this->input->protocols_enable_list,
+            $this->input->protocols_disable_list,
+            $this->input->protocols_disable_list === ['*']);
+        $config_play = new config($config_model);
 
-        if ($this->input->protocols_disable_list === ['*']) {
-            // Enforcing enable list: config.php mode
-            $current_forced_protocols = $this->config_manager->is_setting_forced('webserviceprotocols')
-                ? explode(',', $this->config_manager->get_value('webserviceprotocols'))
-                : [];
-
-            if (array_diff($current_forced_protocols, $this->input->protocols_enable_list) || array_diff($this->input->protocols_enable_list, $current_forced_protocols)) {
-                $this->config_manager->set_forced_setting('webserviceprotocols', implode(',', $this->input->protocols_enable_list));
-                $state_changed = true;
-            }
-        } else {
-            // "soft mode"
-            if ($this->config_manager->is_setting_forced('webserviceprotocols')) {
-                $this->config_manager->delete_forced_setting('webserviceprotocols');
-                $state_changed = true;
-            }
-
-            $current_protocols = explode(',', get_config('', 'webserviceprotocols'));
-            // enable disabled protocols
-            $new_protocols = array_unique(array_merge(
-                array_diff($current_protocols, $this->input->protocols_disable_list),
-                $this->input->protocols_enable_list
-            ));
-            // disable enabled protocols
-            if ($new_protocols !== $current_protocols) {
-                $this->config_manager->set_soft_setting('webserviceprotocols', implode(',', $new_protocols));
-                $state_changed = true;
-            }
-        }
-
-        return $state_changed;
+        return $config_play->play();
     }
 
     /**
