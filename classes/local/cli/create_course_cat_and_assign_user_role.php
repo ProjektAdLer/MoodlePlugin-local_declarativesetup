@@ -22,7 +22,7 @@ class create_course_cat_and_assign_user_role {
     /**
      * @param string $username
      * @param string $role_shortname
-     * @param string|null $category_path
+     * @param string|null $category_path If not provided, a default category path will be generated
      * @throws dml_exception
      * @throws moodle_exception
      */
@@ -87,6 +87,8 @@ class create_course_cat_and_assign_user_role {
     /**
      * @throws moodle_exception
      * @throws invalid_parameter_exception
+     *
+     * @returns int The ID of the category the user was assigned to
      */
     public function execute(): int {
         if (!$this->category_path->exists()) {

@@ -16,7 +16,7 @@ $help = "Create a new course category and grant the user permission to create ad
 Options:
 --username=STRING       User name
 --role=STRING           Role name
---category_path=STRING  Category path (optional)
+--category_path=STRING  Category path (optional) If not provided, a default category path will be generated
 
 -h, --help              Print out this help
 ";
