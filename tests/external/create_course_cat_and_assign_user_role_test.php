@@ -3,12 +3,12 @@
 namespace local_declarativesetup\external;
 
 use context_coursecat;
-use local_adler\lib\adler_externallib_testcase;
+use local_declarativesetup\lib\adler_externallib_testcase;
 use invalid_parameter_exception;
 use local_declarativesetup\local\play\course_category\util\course_category_path;
 
 global $CFG;
-require_once($CFG->dirroot . '/local/adler/tests/lib/adler_testcase.php');
+require_once($CFG->dirroot . '/local/declarativesetup/tests/lib/adler_testcase.php');
 
 class create_course_cat_and_assign_user_role_test extends adler_externallib_testcase {
 

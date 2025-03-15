@@ -7,6 +7,7 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot . '/local/declarativesetup/vendor/autoload.php');
 
 use advanced_testcase;
+use externallib_advanced_testcase;
 use Mockery;
 
 trait general_testcase_adjustments {
@@ -37,5 +38,9 @@ trait general_testcase_adjustments {
 }
 
 abstract class adler_testcase extends advanced_testcase {
+    use general_testcase_adjustments;
+}
+
+abstract class adler_externallib_testcase extends externallib_advanced_testcase {
     use general_testcase_adjustments;
 }
