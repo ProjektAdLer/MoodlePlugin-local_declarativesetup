@@ -42,7 +42,7 @@ abstract class base_play {
             cli_writeln('[ERROR] Play failed, exception occurred: ' . $e->getMessage());
             throw $e;
         }
-        cli_writeln('[INFO] Changed state: ' . ($this->state_changed ? 'yes' : 'no'));
+        cli_writeln("[INFO] Play \"{$this->get_play_name()}\" finished, changed state: " . ($this->state_changed ? 'yes' : 'no'));
         return $this->state_changed;
     }
 
