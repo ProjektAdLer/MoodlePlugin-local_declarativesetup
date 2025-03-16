@@ -15,7 +15,7 @@ class create_course_cat_and_assign_user_role_test extends adler_externallib_test
     /**
      * Data provider for parameter validation
      */
-    public function parameter_data_provider(): array {
+    public static function parameter_data_provider(): array {
         return [
             'valid parameters' => [
                 [
@@ -71,7 +71,7 @@ class create_course_cat_and_assign_user_role_test extends adler_externallib_test
     /**
      * Data provider for return value validation
      */
-    public function returns_data_provider(): array {
+    public static function returns_data_provider(): array {
         return [
             'single result' => [
                 [
