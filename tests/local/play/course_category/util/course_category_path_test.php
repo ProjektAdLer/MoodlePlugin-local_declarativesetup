@@ -74,6 +74,31 @@ class course_category_path_test extends adler_testcase {
         $this->assertEquals(2, count($path));
     }
 
+    public function test_from_category_id(): void {
+        // Create a test category path
+        $original_path = new course_category_path('test_category/test_subcategory');
+        $category_id = $original_path->create();
+        $this->assertTrue($original_path->exists());
+
+        // Now use from_category_id to recreate the path object
+        $recreated_path = course_category_path::from_category_id($category_id);
+
+        // Verify the recreated path is correct
+        $this->assertEquals('test_category / test_subcategory', (string)$recreated_path);
+        $this->assertEquals(2, $recreated_path->count());
+        $this->assertEquals(['test_category', 'test_subcategory'], $recreated_path->get_path());
+        $this->assertEquals($category_id, $recreated_path->get_category_id());
+
+        // Clean up
+        $recreated_path->delete(true, 'delete');
+    }
+
+    public function test_from_category_id_with_nonexistent_id(): void {
+        // Test with a non-existent ID
+        $this->expectException(moodle_exception::class);
+        course_category_path::from_category_id(99999);
+    }
+
     /**
      * # ANF-ID: [MVP20, MVP21]
      */

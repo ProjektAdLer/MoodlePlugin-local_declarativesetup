@@ -28,6 +28,22 @@ class course_category_path implements Countable {
     }
 
     /**
+     * Creates a course_category_path object from an existing category ID
+     *
+     * @param int $category_id The ID of the existing category
+     * @return course_category_path The course_category_path object representing the category
+     * @throws moodle_exception If the category does not exist
+     */
+    public static function from_category_id(int $category_id): self {
+        $category = core_course_category::get($category_id, MUST_EXIST, true);
+
+        // Get the full path name from the category
+        $path_string = $category->get_nested_name(false);
+
+        return new self($path_string);
+    }
+
+    /**
      * @return string the path in moodle format (with spaces around the /)
      */
     public function __toString(): string {
