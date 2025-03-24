@@ -124,6 +124,36 @@ EOD;
         $this->assertEquals('somevalue', get_config('', 'soft_config'));
     }
 
+    public function test_add_two_new_soft_settings() {
+        $php_mock = Mockery::mock(php::class);
+        $capturedData = $this->get_sample_config_php();
+        // We only read from config.php, so file_put_contents shouldn't be called.
+        $php_mock->shouldReceive('file_get_contents')
+            ->atLeast()->once()
+            ->andReturnUsing(function () use (&$capturedData) {
+                return $capturedData;
+            });
+        $php_mock->shouldNotReceive('file_put_contents');
+        di::set(php::class, $php_mock);
+
+        // Ensure both settings do not exist initially
+        $this->assertFalse(get_config('', 'soft_config_a'));
+        $this->assertFalse(get_config('', 'soft_config_b'));
+
+        // Create a config object with two new soft settings
+        $play = new config([
+            new simple_config_model('soft_config_a', 'valueA'),
+            new simple_config_model('soft_config_b', 'valueB')
+        ]);
+
+        $changed = $play->play();
+
+        // Check that the new settings were added
+        $this->assertTrue($changed);
+        $this->assertEquals('valueA', get_config('', 'soft_config_a'));
+        $this->assertEquals('valueB', get_config('', 'soft_config_b'));
+    }
+
     public function test_add_forced_setting() {
         $php_mock = Mockery::mock(php::class);
         $capturedData = $this->get_sample_config_php(); // Initial content

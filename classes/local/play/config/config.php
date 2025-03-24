@@ -49,10 +49,10 @@ class config extends base_play {
         $state_changed = false;
         foreach ($this->input as $config) {
             if ($config instanceof simple_config_model) {
-                $state_changed = $state_changed || $this->update_simple_setting($config);
+                $state_changed =  $this->update_simple_setting($config) || $state_changed;
             }
             if ($config instanceof array_config_model) {
-                $state_changed = $state_changed || $this->update_array_setting($config);
+                $state_changed = $this->update_array_setting($config) || $state_changed;
             }
         }
 
