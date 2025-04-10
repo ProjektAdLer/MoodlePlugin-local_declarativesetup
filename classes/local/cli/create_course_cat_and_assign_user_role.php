@@ -92,11 +92,15 @@ class create_course_cat_and_assign_user_role {
      */
     public function execute(): int {
         if (!$this->category_path->exists()) {
-            cli_writeln("Creating category with path {$this->category_path}");
+            if (defined('STDOUT')) {
+                cli_writeln("Creating category with path {$this->category_path}");
+            }
             $this->category_path->create();
         }
 
-        cli_writeln("Assigning user with ID {$this->user_id} to role with ID {$this->role_id} in category with ID {$this->category_path->get_category_id()}");
+        if (defined('STDOUT')) {
+            cli_writeln("Assigning user with ID {$this->user_id} to role with ID {$this->role_id} in category with ID {$this->category_path->get_category_id()}");
+        }
         role_assign(
             $this->role_id,
             $this->user_id,
