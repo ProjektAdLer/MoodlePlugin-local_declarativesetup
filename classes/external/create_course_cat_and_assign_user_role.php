@@ -89,13 +89,13 @@ class create_course_cat_and_assign_user_role extends external_api {
                     $element['role'],
                     $element['category_path'] ?? null
                 );
-                $category_id = $manager->execute();
+                $category_path = $manager->execute();
 
                 $result[] = [
                     'username' => $element['username'],
                     'role' => $element['role'],
-                    'category_path' => $element['category_path'] ?? null,
-                    'category_id' => $category_id
+                    'category_path' => $category_path->get_path(),
+                    'category_id' => $category_path->get_category_id(),
                 ];
             }
         } catch (moodle_exception $e) {
