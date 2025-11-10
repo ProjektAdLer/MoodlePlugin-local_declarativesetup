@@ -50,8 +50,7 @@ if (!empty($options['help'])) {
             trim($options['role']),
             trim($options['category_path'])
         );
-        $category_path = $manager->execute();
-        $category_id = $category_path->get_category_id();
+        $category_id = $manager->execute();
     } catch (moodle_exception $e) {
         cli_writeln($e->getMessage());
         throw new exit_exception(1);

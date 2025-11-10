@@ -90,7 +90,7 @@ class create_course_cat_and_assign_user_role {
      *
      * @returns int The ID of the category the user was assigned to
      */
-    public function execute(): course_category_path {
+    public function execute(): int {
         if (!$this->category_path->exists()) {
             if (defined('STDOUT')) {
                 cli_writeln("Creating category with path {$this->category_path}");
@@ -107,6 +107,6 @@ class create_course_cat_and_assign_user_role {
             di::get(moodle_core::class)->context_coursecat_instance($this->category_path->get_category_id())
         );
 
-        return $this->category_path;
+        return $this->category_path->get_category_id();
     }
 }

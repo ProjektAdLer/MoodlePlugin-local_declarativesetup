@@ -116,7 +116,7 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
         $category_path = 'category_path';
 
         $instance = new create_course_cat_and_assign_user_role('username', 'role', $category_path);
-        $cc_id = $instance->execute()->get_category_id();
+        $cc_id = $instance->execute();
 
 
         // assert category was created
@@ -131,7 +131,7 @@ class create_course_cat_and_assign_user_role_test extends adler_testcase {
         $role_id = $this->getDataGenerator()->create_role(['shortname' => 'role']);
 
         $instance = new create_course_cat_and_assign_user_role('username', 'role', null);
-        $cc_id = $instance->execute()->get_category_id();
+        $cc_id = $instance->execute();
 
         // assert user was assigned to role
         $this->assertNotEmpty(get_user_roles(context_coursecat::instance($cc_id), $user->id));
